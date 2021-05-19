@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.13.4)
+include(preload.cmake)
+
+include_directories(wxWidgets/include)
+include_directories(src/gui)
+include_directories(src/game)
+include_directories(src/net)
+include_directories(src)
+
+project(PokeGame)
+aux_source_directory(src/gui GUI)
+add_executable(main main.cc ${GUI})
+
+set(wxWidgets_ROOT_DIR ./wxWidgets)
+set(wxWidgets_CONFIGURATION msw)
+find_package(wxWidgets REQUIRED gl core base)
+include(${wxWidgets_USE_FILE})
+target_link_libraries(main ${wxWidgets_LIBRARIES})
