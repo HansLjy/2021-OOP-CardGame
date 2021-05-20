@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GAME_H
+#define GAME_H
 
 class Card {
 public:
@@ -134,3 +135,5 @@ public:
  */
 class UNOGame;
 class PokeGame;
+
+#endif

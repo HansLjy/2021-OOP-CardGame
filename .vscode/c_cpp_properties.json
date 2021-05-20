@@ -5,7 +5,10 @@
             "includePath": [
                 "${workspaceFolder}/**",
 				"./wxWidgets/include",
-				"./src/gui"
+				"./src/app",
+				"./src/game",
+				"./src/interface",
+				"./src/net"
             ],
             "defines": [
                 "_DEBUG",
