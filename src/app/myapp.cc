@@ -17,6 +17,7 @@ MainFrame::MainFrame(const wxString& title, const wxPoint& pos, const wxSize& si
     CreateStatusBar();
     SetStatusText( "Game Initialized!");
 	Center();
+	p_canvas = new MainMenuCanvas(this);
 }
 
 void MainFrame::Refresh() {
@@ -40,6 +41,21 @@ bool GameApp::OnInit() {
 	p_mainframe = new MainFrame(GAME_TITLE, wxPoint(50, 50));
 	p_mainframe->Refresh();
 	return true;
+}
+
+enum {
+	mainID_Poke = 1001,
+	mainID_UNO = 1002
+};
+
+MainMenuCanvas::MainMenuCanvas(MainFrame* p_frame) : BaseCanvas (p_frame) {
+	p_button = new wxButton(this, wxID_EXIT, wxT("Quit"), wxPoint(20, 20));
+}
+
+MainMenuCanvas::~MainMenuCanvas() {
+	if (p_button) {
+		delete p_button;
+	}
 }
 
 wxIMPLEMENT_APP(GameApp);
