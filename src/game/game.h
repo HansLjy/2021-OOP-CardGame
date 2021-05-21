@@ -131,6 +131,13 @@ public:
 };
 
 /**
+ * @brief 获取新游戏的指针
+ * @param game_type 游戏类型
+ * @return Game* 指向游戏的指针
+ */
+Game* GetGame(GameType game_type);
+
+/**
  * 下列函数应当继承自 Game 类
  */
 class UNOGame;
