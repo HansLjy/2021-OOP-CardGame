@@ -8,24 +8,25 @@
 MainMenu::MainMenu(wxWindow* p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 
-	title = new wxStaticText(this, wxID_ANY, wxT("Main Menu"));
-	image = new wxImagePanel(this, wxString("./static/UNO.jpg"), wxBITMAP_TYPE_JPEG);
-	b_play_UNO = new wxButton(this, mainID_play_UNO, wxT("Play UNO"));
-	b_play_Poke = new wxButton(this, mainID_play_Poke, wxT("Play Poke"));
-	b_quit = new wxButton(this, wxID_EXIT, wxT("Quit"));
+	right_panel = new wxPanel(this);
+	title 		= new wxStaticText(right_panel, wxID_ANY, wxT("Main Menu"));
+	image 		= new wxImagePanel(this, wxString("./static/UNO.jpg"), wxBITMAP_TYPE_JPEG);
+	b_play_UNO  = new wxButton(right_panel, mainID_play_UNO, wxT("Play UNO"));
+	b_play_Poke = new wxButton(right_panel, mainID_play_Poke, wxT("Play Poke"));
+	b_quit 		= new wxButton(right_panel, wxID_EXIT, wxT("Quit"));
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 
-
 	hbox->Add(image, 1, wxEXPAND | wxALL, 20);
 	
-	vbox->Add(title, 1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 10);
-	vbox->Add(b_play_UNO, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
-	vbox->Add(b_play_Poke, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
-	vbox->Add(b_quit, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
+	vbox->Add(title, 	   1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 10);
+	vbox->Add(b_play_UNO,  1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
+	vbox->Add(b_play_Poke, 1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
+	vbox->Add(b_quit, 	   1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
+	right_panel->SetSizer(vbox);
 
-	hbox->Add(vbox, 1, wxALIGN_CENTER | wxUP | wxBOTTOM, 10);
+	hbox->Add(right_panel, 1, wxALIGN_CENTER | wxUP | wxBOTTOM, 10);
 
 	SetSizer(hbox);
 

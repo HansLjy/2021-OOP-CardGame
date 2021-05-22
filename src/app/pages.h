@@ -9,7 +9,8 @@ public:
 	MainMenu () = delete;
 	MainMenu (wxWindow* p_parent);
 
-	wxWindow *p_parent; 
+	wxWindow *p_parent;
+	wxPanel *right_panel;
 	wxImagePanel *image;
 	wxStaticText *title;
 	wxButton *b_play_UNO;

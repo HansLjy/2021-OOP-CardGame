@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13.4)
 include(preload.cmake)
 
+set(CMAKE_CXX_FLAGS_DEBUG "-g -DDEBUG -O0")
 
 include_directories(wxWidgets/include)
 include_directories(src/interface)
