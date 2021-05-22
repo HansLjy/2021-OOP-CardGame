@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13.4)
 include(preload.cmake)
 
+
 include_directories(wxWidgets/include)
 include_directories(src/interface)
 include_directories(src/game)

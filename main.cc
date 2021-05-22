@@ -4,6 +4,7 @@
 IMPLEMENT_APP(MyApp);
 
 bool MyApp::OnInit() {
+	wxInitAllImageHandlers();
 	MainFrame* main_frame = new MainFrame("Card Game");
 	main_frame->Show(true);
 	return true;
