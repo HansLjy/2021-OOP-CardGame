@@ -9,6 +9,7 @@ public:
 	MainMenu *main_menu;
 	SubMenu *sub_menu_uno, *sub_menu_poke;
 	SingleGameMenu *single_game_menu;
+	GameInterface *game_interface;
 
 	void OnQuit(wxCommandEvent& event);
 	void OnButton(wxCommandEvent& event);

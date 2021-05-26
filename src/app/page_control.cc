@@ -5,7 +5,8 @@ enum {
 	kMainMenu = 0,
 	kSubMenuUNO,
 	kSubMenuPoke,
-	kSingleGameMenu
+	kSingleGameMenu,
+	kGameInterface
 };
 
 PageController::PageController(wxWindow* p_parent)
@@ -22,11 +23,16 @@ PageController::PageController(wxWindow* p_parent)
 	single_game_menu = new SingleGameMenu(this);
 	AddPage(single_game_menu, wxT("Single Game Menu"));
 
+	game_interface = new GameInterface(this);
+	AddPage(game_interface, wxT("Game Interface"));
+
 	Connect(mainID_play_UNO,  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(mainID_play_Poke, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(subID_single, 	  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(subID_multi,	  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(subID_back,		  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
+	Connect(singleID_confirm, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
+	Connect(singleID_back,	  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(wxID_EXIT, 		  wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnQuit));
 }
 
@@ -49,6 +55,15 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kSingleGameMenu);
 			break;
 		case subID_multi:
+			// @todo
+			break;
+		case singleID_confirm:
+			ChangeSelection(kGameInterface);
+			game_interface->render();
+			break;
+		case singleID_back:
+			ChangeSelection(kMainMenu);
+			break;
 		default:
 			event.Skip();
 			break;

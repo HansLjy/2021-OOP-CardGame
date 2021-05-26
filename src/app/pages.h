@@ -2,8 +2,10 @@
 #include "wx/panel.h"
 #include "wx/textctrl.h"
 #include "wx/textwrapper.h"
-#include "image_panel.h"
 #include "wx/spinctrl.h"
+#include "image_panel.h"
+#include "deck.h"
+#include "game.h"
 
 class MainMenu : public wxPanel {
 public:
@@ -22,11 +24,6 @@ public:
 	void OnPlayPoke(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 
-};
-
-enum GameType {
-	kUNO,
-	kPoke
 };
 
 class SubMenu : public wxPanel {
@@ -58,4 +55,19 @@ public:
 	wxSpinCtrl *user_number_input;
 	wxButton *confirm;
 	wxButton *go_back;
+
+	void OnConfirm(wxCommandEvent &event);
+	void OnReturn(wxCommandEvent &event);
+};
+
+class GameInterface : public wxPanel {
+public:
+	GameInterface () = delete;
+	GameInterface (wxWindow* p_parent);
+
+	wxWindow *p_parent;
+	wxClientDC dc;
+	Deck deck[4];	// 四位玩家的手牌
+
+	void render();
 };

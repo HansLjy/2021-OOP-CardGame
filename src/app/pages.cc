@@ -3,6 +3,7 @@
 #include "wx/button.h"
 #include "wx/sizer.h"
 #include "wx/spinctrl.h"
+#include "wx/dcclient.h"
 #include "image_panel.h"
 #include "page_control_event.h"
 
@@ -134,4 +135,28 @@ SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
 	panel->SetSizer(panel_box);
 	vbox->Add(panel, 1, wxALL | wxEXPAND, 20);
 	SetSizer(vbox);
+
+	Connect(singleID_confirm, 	wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnConfirm));
+	Connect(singleID_back,		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnReturn));
+}
+
+void SingleGameMenu::OnConfirm(wxCommandEvent &event) {
+	std::cerr << "Click confirm" << std::endl;
+	event.Skip();
+}
+
+void SingleGameMenu::OnReturn(wxCommandEvent &event) {
+	std::cerr << "Click Return" << std::endl;
+	event.Skip();
+}
+
+GameInterface::GameInterface(wxWindow *p_parent)
+	: wxPanel(p_parent), p_parent(p_parent), dc(this) {
+}
+
+void GameInterface::render() {
+	deck[0].cards.push_back(1);
+	deck[0].cards.push_back(2);
+	deck[0].cards.push_back(3);
+	deck[0].Draw(dc, 0, 0);
 }
