@@ -6,8 +6,9 @@ class PageController : public wxSimplebook {
 public:
 	PageController () = delete;
 	PageController (wxWindow* p_parent);
-	MainMenu *p_main_menu;
-	SubMenu *p_sub_menu_uno, *p_sub_menu_poke;
+	MainMenu *main_menu;
+	SubMenu *sub_menu_uno, *sub_menu_poke;
+	SingleGameMenu *single_game_menu;
 
 	void OnQuit(wxCommandEvent& event);
 	void OnButton(wxCommandEvent& event);

@@ -3,6 +3,7 @@
 #include "wx/textctrl.h"
 #include "wx/textwrapper.h"
 #include "image_panel.h"
+#include "wx/spinctrl.h"
 
 class MainMenu : public wxPanel {
 public:
@@ -42,4 +43,19 @@ public:
 	void OnSingle(wxCommandEvent& event);
 	void OnMulti(wxCommandEvent& event);
 	void OnBack(wxCommandEvent& event);
+};
+
+class SingleGameMenu : public wxPanel {
+public:
+	SingleGameMenu () = delete;
+	SingleGameMenu (wxWindow *p_parent);
+
+	wxStaticText *title;
+	wxWindow *p_parent;
+	wxStaticText *user_name_label;
+	wxTextCtrl *user_name_input;
+	wxStaticText *user_number_label;
+	wxSpinCtrl *user_number_input;
+	wxButton *confirm;
+	wxButton *go_back;
 };

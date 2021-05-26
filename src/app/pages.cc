@@ -2,6 +2,7 @@
 #include "pages.h"
 #include "wx/button.h"
 #include "wx/sizer.h"
+#include "wx/spinctrl.h"
 #include "image_panel.h"
 #include "page_control_event.h"
 
@@ -97,4 +98,40 @@ void SubMenu::OnMulti(wxCommandEvent& event) {
 void SubMenu::OnBack(wxCommandEvent& event) {
 	std::cerr << "Back" << std::endl;
 	event.Skip();
+}
+
+SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
+	: wxPanel (p_parent), p_parent(p_parent) {
+
+	wxPanel *panel = new wxPanel(this);
+
+	title = new wxStaticText(panel, wxID_ANY, wxT("Single Player Mode"));
+	user_name_label = new wxStaticText(panel, wxID_ANY, wxT("User Name: "));
+	user_name_input = new wxTextCtrl(panel, singleID_player_number, wxT("Player NO.1"));
+	user_number_label = new wxStaticText(panel, wxID_ANY, wxT("Player Number: "));
+	user_number_input = new wxSpinCtrl(panel, singleID_player_number, wxT("4"));
+	confirm = new wxButton(panel, singleID_confirm, wxT("confirm"));
+	go_back = new wxButton(panel, singleID_back, wxT("return"));
+
+	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *panel_box = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *hbox1 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *hbox2 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *hbox3 = new wxBoxSizer(wxHORIZONTAL);
+
+	hbox1->Add(user_name_label, 0, wxALIGN_LEFT);
+	hbox1->Add(user_name_input, 0, wxALIGN_LEFT);
+	hbox2->Add(user_number_label, 0, wxALIGN_LEFT);
+	hbox2->Add(user_number_input, 0, wxALIGN_LEFT);
+	hbox3->Add(confirm, 0, wxCENTER);
+	hbox3->Add(go_back, 0, wxCENTER);
+
+	panel_box->Add(title, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 20);
+	panel_box->Add(hbox1, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 20);
+	panel_box->Add(hbox2, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 20);
+	panel_box->Add(hbox3, 0, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 20);
+
+	panel->SetSizer(panel_box);
+	vbox->Add(panel, 1, wxALL | wxEXPAND, 20);
+	SetSizer(vbox);
 }
