@@ -1,55 +1,8 @@
 #pragma once
+#include <vector>
 
-class Card {
-public:
-	/**
-	 * @brief 获得该张卡片的 ID
-	 * @return 卡片的 ID
-	 * @todo 卡牌和 int 的映射方式待定
-	 */
-	virtual int GetID() const = 0;
-};
-
-// 以下类应继承自 Card 类
-class UNOCard;
-class PokeCard;
-
-/**
- * @brief 卡牌集，手牌和准备打出的牌均以此方式传输
- * @note 卡牌集应当保持一定顺序
- */
-class CardSet {
-public:
-	/**
-	 * @brief 获得卡牌集的卡牌数
-	 * @return int 卡牌数
-	 */
-	virtual int GetNumOfCards() = 0;
-
-	/**
-	 * @brief 获得第 k 张卡牌
-	 * @param k 卡牌编号，从 0 开始
-	 * @return const Card& 第 k 张卡牌的常引用
-	 */
-	virtual const Card& GetCard(int k) const = 0;
-
-	/**
-	 * @brief 从卡牌集中删除卡牌
-	 * @param card 待删除的卡牌
-	 * @note 如果有多张相同的卡牌，应当只删除一张；如果找不到此卡牌，此操作无效
-	 */
-	virtual void DeleteCard(const Card& card);
-
-	/**
-	 * @brief 像卡牌组中添加一张卡牌
-	 * @note 添加的卡牌可以添加至末尾，但建议顺序保持卡牌的顺序，即按大小插入到正确位置
-	 */
-	virtual void AddCard() = 0;
-};
-
-// 一下类应继承自 CardSet，并提供不带参数的构造函数，要求此构造函数构造空的卡牌集
-class UNOCardSet;
-class PokeCardSet;
+typedef int Card;
+typedef std::vector<Card> CardSet;
 
 enum GameType {kUNO, kPoke};
 
@@ -130,7 +83,8 @@ public:
 };
 
 /**
- * 下列函数应当继承自 Game 类
+ * @brief 获取新游戏的指针
+ * @param game_type 游戏类型
+ * @return Game* 指向游戏的指针
  */
-class UNOGame;
-class PokeGame;
+Game* GetGame(GameType game_type);
