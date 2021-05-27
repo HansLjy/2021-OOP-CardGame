@@ -1,18 +1,19 @@
 #pragma once
 enum {
-	mainID_play_UNO = 1000,
-	mainID_play_Poke
+	mainID_play_single = 1000,
+	mainID_play_multi
 };
 
 enum {
-	subID_single = 1100,
-	subID_multi,
-	subID_back
-};
-
-enum {
-	singleID_username = 2000,
+	singleID_game_select = 2000,
+	singleID_username,
 	singleID_player_number,
 	singleID_confirm,
 	singleID_back
+};
+
+enum {
+	multiID_join_game = 3000,
+	multiID_create_game,
+	multiID_back
 };
