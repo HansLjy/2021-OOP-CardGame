@@ -63,6 +63,52 @@ public:
 	void OnReturn(wxCommandEvent &event);
 };
 
+class MultiGameJoinSetting : public wxPanel {
+public:
+	MultiGameJoinSetting () = delete;
+	MultiGameJoinSetting (wxWindow *p_parent);
+	
+	wxWindow		*p_parent;
+	wxStaticText	*title;
+	wxStaticText	*user_name_label;
+	wxTextCtrl		*user_name_input;
+	wxStaticText	*IP_label;
+	wxTextCtrl		*IP_input;
+	wxStaticText	*passwd_label;
+	wxTextCtrl		*passwd_input;
+	wxButton		*confirm;
+	wxButton		*go_back;
+
+	void OnConfirm(wxCommandEvent &event);
+	void OnReturn(wxCommandEvent &event);
+};
+
+class MultiGameCreateSetting : public wxPanel {
+public:
+	MultiGameCreateSetting () = delete;
+	MultiGameCreateSetting (wxWindow *p_parent);
+
+	wxWindow		*p_parent;
+	wxStaticText	*title;
+	wxStaticText 	*game_select_label;
+	wxChoice		*game_select;
+	wxStaticText	*user_name_label;
+	wxTextCtrl		*user_name_input;
+	wxStaticText 	*user_number_label;
+	wxSpinCtrl   	*user_number_input;
+	wxStaticText	*passwd_label;
+	wxTextCtrl		*passwd_input;
+	wxButton		*confirm;
+	wxButton		*go_back;
+
+	void OnConfirm(wxCommandEvent &event);
+	void OnReturn(wxCommandEvent &event);
+};
+
+class GameOverPage : public wxPanel {
+
+};
+
 class GameInterface : public wxPanel {
 public:
 	GameInterface () = delete;

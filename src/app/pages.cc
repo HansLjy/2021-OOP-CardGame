@@ -5,6 +5,7 @@
 #include "wx/spinctrl.h"
 #include "wx/dcclient.h"
 #include "image_panel.h"
+#include "center_block_sizer.h"
 #include "page_control_event.h"
 
 MainMenu::MainMenu(wxWindow* p_parent)
@@ -160,6 +161,117 @@ void MultiGameMenu::OnReturn(wxCommandEvent &event) {
 	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
+
+MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
+	: wxPanel(p_parent), p_parent(p_parent) {
+	
+	title = new wxStaticText(this, wxID_ANY, wxT("Join Game"));
+	user_name_label = new wxStaticText(this, wxID_ANY, wxT("User Name: "));
+	user_name_input = new wxTextCtrl(this, joinID_username, wxT("Player NO.1"));
+	IP_label = new wxStaticText(this, wxID_ANY, wxT("IP: "));
+	IP_input = new wxTextCtrl(this, joinID_IP);
+	passwd_label = new wxStaticText(this, wxID_ANY, wxT("Password: "));
+	passwd_input = new wxTextCtrl(this, joinID_passwd);
+	confirm = new wxButton(this, joinID_confirm, wxT("Confirm"));
+	go_back = new wxButton(this, joinID_back, wxT("Return"));
+
+	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *inner_vbox = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *inner_hbox0 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *inner_hbox1 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *inner_hbox2 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *inner_hbox3 = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *inner_hbox4 = new wxBoxSizer(wxHORIZONTAL);
+
+	inner_hbox0->Add(title, 1, wxALIGN_CENTER);
+	inner_hbox1->Add(user_name_label, 1, wxALIGN_CENTER);
+	inner_hbox1->Add(user_name_input, 1, wxALIGN_CENTER);
+	inner_hbox2->Add(IP_label, 1, wxALIGN_CENTER);
+	inner_hbox2->Add(IP_input, 1, wxALIGN_CENTER);
+	inner_hbox3->Add(passwd_label, 1, wxALIGN_CENTER);
+	inner_hbox3->Add(passwd_input, 1, wxALIGN_CENTER);
+	inner_hbox4->Add(confirm, 1, wxALIGN_CENTER);
+	inner_hbox4->Add(go_back, 1, wxALIGN_CENTER);
+
+	inner_vbox->Add(inner_hbox0, wxALIGN_CENTER);
+	inner_vbox->Add(inner_hbox1, wxALIGN_CENTER);
+	inner_vbox->Add(inner_hbox2, wxALIGN_CENTER);
+	inner_vbox->Add(inner_hbox3, wxALIGN_CENTER);
+	inner_vbox->Add(inner_hbox4, wxALIGN_CENTER);
+
+	hbox->Add(new wxPanel(this), 1, wxALL | wxEXPAND, 20);
+	hbox->Add(inner_vbox, 1, wxALL | wxEXPAND, 20);
+	hbox->Add(new wxPanel(this), 1, wxALL | wxEXPAND, 20);
+
+	vbox->Add(new wxPanel(this), 1, wxALL | wxEXPAND, 20);
+	vbox->Add(hbox, 1, wxALL | wxEXPAND, 20);
+	vbox->Add(new wxPanel(this), 1, wxALL | wxEXPAND, 20);
+
+	SetSizer(vbox);
+
+	Connect(joinID_confirm, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnConfirm));
+	Connect(joinID_back, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnReturn));
+}
+
+void MultiGameJoinSetting::OnConfirm(wxCommandEvent &event) {
+	std::cerr << "Click Confirm" << std::endl;
+	event.Skip();
+}
+
+void MultiGameJoinSetting::OnReturn(wxCommandEvent &event) {
+	std::cerr << "Click Return" << std::endl;
+	event.Skip();
+}
+
+MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
+	: wxPanel(p_parent), p_parent(p_parent) {
+	title = new wxStaticText(this, wxID_ANY, wxT("Create Game"));
+	game_select_label = new wxStaticText(this, wxID_ANY, wxT("Choose game: "));
+	game_select = new wxChoice(this, createID_game_select);
+	user_name_label = new wxStaticText(this, wxID_ANY, wxT("User Name: "));
+	user_name_input = new wxTextCtrl(this, createID_username, wxT("Player NO.1"));
+	user_number_label = new wxStaticText(this, wxID_ANY, wxT("Player Number: "));
+	user_number_input = new wxSpinCtrl(this, createID_player_number, wxT("4"));
+	passwd_label = new wxStaticText(this, wxID_ANY, wxT("Password: "));
+	passwd_input = new wxTextCtrl(this, createID_passwd);
+	confirm = new wxButton(this, createID_confirm, wxT("Confirm"));
+	go_back = new wxButton(this, createID_back, wxT("Return"));
+
+	game_select->Insert(wxT("Poke0"), 0);
+	game_select->Insert(wxT("Poke1"), 1);
+	game_select->SetSelection(0);
+
+	CenterBlockSizer *sizer = new CenterBlockSizer(this);
+	sizer->AddWidget(true, title);
+	sizer->AddWidget(true, game_select_label);
+	sizer->AddWidget(false, game_select);
+	sizer->AddWidget(true, user_name_label);
+	sizer->AddWidget(false, user_name_input);
+	sizer->AddWidget(true, user_number_label);
+	sizer->AddWidget(false, user_number_input);
+	sizer->AddWidget(true, passwd_label);
+	sizer->AddWidget(false, passwd_input);
+	sizer->AddWidget(true, confirm);
+	sizer->AddWidget(false, go_back);
+	sizer->Create();
+
+	SetSizer(sizer);
+
+	Connect(createID_confirm, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnConfirm));
+	Connect(createID_back, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnReturn));
+}
+
+void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
+	std::cerr << "Click Confirm" << std::endl;
+	event.Skip();
+}
+
+void MultiGameCreateSetting::OnReturn(wxCommandEvent &event) {
+	std::cerr << "Click Return" << std::endl;
+	event.Skip();
+}
+
 
 GameInterface::GameInterface(wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent), dc(this) {

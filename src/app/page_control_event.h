@@ -17,3 +17,20 @@ enum {
 	multiID_create_game,
 	multiID_back
 };
+
+enum {
+	joinID_username = 4000,
+	joinID_IP,
+	joinID_passwd,
+	joinID_confirm,
+	joinID_back
+};
+
+enum {
+	createID_game_select = 5000,
+	createID_username,
+	createID_player_number,
+	createID_passwd,
+	createID_confirm,
+	createID_back
+};
