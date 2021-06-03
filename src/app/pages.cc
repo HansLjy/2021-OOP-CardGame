@@ -243,17 +243,17 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
-	sizer->AddWidget(true, title);
-	sizer->AddWidget(true, game_select_label);
-	sizer->AddWidget(false, game_select);
-	sizer->AddWidget(true, user_name_label);
-	sizer->AddWidget(false, user_name_input);
-	sizer->AddWidget(true, user_number_label);
-	sizer->AddWidget(false, user_number_input);
-	sizer->AddWidget(true, passwd_label);
-	sizer->AddWidget(false, passwd_input);
-	sizer->AddWidget(true, confirm);
-	sizer->AddWidget(false, go_back);
+	sizer->AddWidget(title, true, wxALIGN_CENTRE);
+	sizer->AddWidget(game_select_label, true);
+	sizer->AddWidget(game_select);
+	sizer->AddWidget(user_name_label, true);
+	sizer->AddWidget(user_name_input);
+	sizer->AddWidget(user_number_label, true);
+	sizer->AddWidget(user_number_input);
+	sizer->AddWidget(passwd_label, true);
+	sizer->AddWidget(passwd_input);
+	sizer->AddWidget(confirm, true);
+	sizer->AddWidget(go_back);
 	sizer->Create();
 
 	SetSizer(sizer);

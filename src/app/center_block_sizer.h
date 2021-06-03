@@ -4,13 +4,17 @@
 
 class CenterBlockSizer : public wxBoxSizer {
 public:
+	enum Alignment {
+		kCenter = 0,
+		kLeft,
+		kRight
+	};
 	CenterBlockSizer(wxWindow* p_prent);
-	void AddWidget(bool new_line, wxWindow* widget);
+	void AddWidget(wxWindow* widget, bool new_line = false, int alignment = wxALIGN_LEFT);
 	void Create();
 
 private:
 	wxWindow 	*p_parent;
-	wxPanel 	*panel;
 	wxBoxSizer	*panel_box, *hbox;
 	std::vector <wxBoxSizer*> hboxes;
 };

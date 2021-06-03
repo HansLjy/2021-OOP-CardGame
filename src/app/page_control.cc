@@ -73,6 +73,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case createID_back:
 			ChangeSelection(kMultiGameMenu);
+			break;
 		case multiID_back:
 			ChangeSelection(kMainMenu);
 			break;

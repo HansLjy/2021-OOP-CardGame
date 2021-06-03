@@ -2,32 +2,26 @@
 
 CenterBlockSizer::CenterBlockSizer (wxWindow *p_parent)
 	: wxBoxSizer(wxVERTICAL), p_parent(p_parent) {
-	panel = new wxPanel(p_parent);
 	panel_box = new wxBoxSizer(wxVERTICAL);
 	hbox = new wxBoxSizer(wxHORIZONTAL);
 }
 
-void CenterBlockSizer::AddWidget (bool new_line, wxWindow* widget) {
+void CenterBlockSizer::AddWidget (wxWindow* widget, bool new_line, int alignment) {
 	static wxBoxSizer *cur_sizer = nullptr;
 	if (new_line) {
 		cur_sizer = new wxBoxSizer(wxHORIZONTAL);
 		hboxes.push_back(cur_sizer);
 	}
 
-	cur_sizer->Add(widget, 1, wxALIGN_LEFT | wxBOTTOM | wxUP, 5);
+	cur_sizer->Add(widget, 1, alignment | wxALL, 5);
 }
 
 void CenterBlockSizer::Create () {
 	for (auto &sizer : hboxes) {
-		panel_box->Add(sizer);
+		panel_box->Add(sizer, 0, wxEXPAND);
 	}
-	panel->SetSizer(panel_box);
 
-	hbox->Add(new wxPanel(p_parent), 1, wxEXPAND);
-	hbox->Add(panel, 1, wxEXPAND);
-	hbox->Add(new wxPanel(p_parent), 1, wxEXPAND);
-
-	Add(new wxPanel(p_parent), 1, wxEXPAND);
-	Add(hbox, 1, wxEXPAND);
-	Add(new wxPanel(p_parent), 1, wxEXPAND);
+	Add(new wxPanel(p_parent), 1, wxALL, 20);
+	Add(panel_box, 1, wxALIGN_CENTRE | wxALL, 20);
+	Add(new wxPanel(p_parent), 1, wxALL, 20);
 }
