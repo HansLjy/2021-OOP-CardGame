@@ -2,9 +2,7 @@
 #include "wx/menu.h"
 #include "wx/frame.h"
 #include "page_control.h"
-
-const wxPoint k_default_position(50, 50);
-const wxSize k_default_size(800, 600);
+#include "global.h"
 
 class MainFrame : public wxFrame {
 public:

@@ -7,6 +7,7 @@
 #include "image_panel.h"
 #include "center_block_sizer.h"
 #include "page_control_event.h"
+#include "deck.h"
 
 MainMenu::MainMenu(wxWindow* p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
@@ -275,11 +276,31 @@ void MultiGameCreateSetting::OnReturn(wxCommandEvent &event) {
 
 GameInterface::GameInterface(wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent), dc(this) {
+
+	deck[0] = new DeckPanel(this, kFaceUp, kDown);
+	deck[1] = new DeckPanel(this, kFaceDown, kLeft);
+	deck[2] = new DeckPanel(this, kFaceDown, kUp);
+	deck[3] = new DeckPanel(this, kFaceDown, kRight);
+	deck[0]->SetDeck({1, 2, 3});
+	deck[1]->SetDeck({4, 5, 6, 7, 8});
+	deck[2]->SetDeck({1, 2, 3, 4, 5, 6, 7, 8, 9});
+	deck[3]->SetDeck({0, 1, 2, 3});
+	midpan = new wxPanel(this);
+	timer = new wxStaticText(midpan, wxID_ANY, "Time left:");
+
+	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
+	hbox->Add(deck[1], 1);
+	hbox->Add(midpan, 5, wxEXPAND);
+	hbox->Add(deck[3], 1);
+
+	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+	vbox->Add(deck[2], 1);
+	vbox->Add(hbox, 5, wxEXPAND);
+	vbox->Add(deck[0], 1);
+
+	SetSizer(vbox);
 }
 
 void GameInterface::render() {
-	deck[0].cards.push_back(1);
-	deck[0].cards.push_back(2);
-	deck[0].cards.push_back(3);
-	deck[0].Draw(dc, 0, 0);
+	std::cerr << "render!" << std::endl;
 }

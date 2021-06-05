@@ -58,6 +58,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case singleID_confirm:
 			ChangeSelection(kGameInterface);
+			game_interface->render();
 			break;
 		case singleID_back:
 			ChangeSelection(kMainMenu);

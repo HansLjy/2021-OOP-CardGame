@@ -114,9 +114,11 @@ public:
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
-	wxWindow *p_parent;
-	wxClientDC dc;
-	Deck deck[4];	// 四位玩家的手牌
+	wxStaticText	*timer;
+	wxWindow		*p_parent;
+	wxClientDC		dc;
+	DeckPanel		*deck[4];
+	wxPanel			*midpan;
 
 	void render();
 };
