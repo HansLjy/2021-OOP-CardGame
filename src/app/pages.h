@@ -25,6 +25,7 @@ public:
 	void OnPlayMulti(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 
+	wxDECLARE_EVENT_TABLE();
 };
 
 class SingleGameMenu : public wxPanel {
@@ -45,6 +46,8 @@ public:
 
 	void OnConfirm(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
+
+	wxDECLARE_EVENT_TABLE();
 };
 
 class MultiGameMenu : public wxPanel {
@@ -61,6 +64,8 @@ public:
 	void OnJoin(wxCommandEvent &event);
 	void OnCreate(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
+
+	wxDECLARE_EVENT_TABLE();
 };
 
 class MultiGameJoinSetting : public wxPanel {
@@ -81,6 +86,8 @@ public:
 
 	void OnConfirm(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
+
+	wxDECLARE_EVENT_TABLE();
 };
 
 class MultiGameCreateSetting : public wxPanel {
@@ -103,6 +110,8 @@ public:
 
 	void OnConfirm(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
+
+	wxDECLARE_EVENT_TABLE();
 };
 
 class GameOverPage : public wxPanel {
