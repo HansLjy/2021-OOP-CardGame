@@ -19,11 +19,14 @@ MainMenu::MainMenu(wxWindow* p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 
 	right_panel 	= new wxPanel(this);
-	title 			= new wxStaticText(right_panel, wxID_ANY, wxT("Main Menu"));
+	title 			= new wxStaticText(right_panel, wxID_ANY, wxT("主菜单"));
 	image 			= new wxImagePanel(this, wxString("./static/main.jpg"), wxBITMAP_TYPE_JPEG);
 	b_play_single 	= new wxButton(right_panel, mainID_play_single, wxT("Single Player"));
 	b_play_multi	= new wxButton(right_panel, mainID_play_multi, wxT("Multi Player"));
 	b_quit 			= new wxButton(right_panel, wxID_EXIT, wxT("Quit"));
+
+	title->SetFont(h1_font);
+	b_play_single->SetFont(button_font);
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
@@ -31,9 +34,9 @@ MainMenu::MainMenu(wxWindow* p_parent)
 	hbox->Add(image, 1, wxEXPAND | wxALL, 20);
 
 	vbox->Add(title, 	   		1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 10);
-	vbox->Add(b_play_single,  	1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
-	vbox->Add(b_play_multi, 	1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
-	vbox->Add(b_quit, 	   		1, wxALIGN_CENTER_HORIZONTAL | wxUP | wxBOTTOM, 5);
+	vbox->Add(b_play_single,  	0, wxALL | wxCENTER, 10);
+	vbox->Add(b_play_multi, 	0, wxALL | wxCENTER, 10);
+	vbox->Add(b_quit, 	   		0, wxALL | wxCENTER, 10);
 	right_panel->SetSizer(vbox);
 
 	hbox->Add(right_panel, 1, wxALIGN_CENTER | wxUP | wxBOTTOM, 10);
