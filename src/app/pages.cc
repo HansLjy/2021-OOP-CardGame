@@ -21,9 +21,9 @@ MainMenu::MainMenu(wxWindow* p_parent)
 	right_panel 	= new wxPanel(this);
 	title 			= new wxStaticText(right_panel, wxID_ANY, wxT("主菜单"));
 	image 			= new wxImagePanel(this, wxString("./static/main.jpg"), wxBITMAP_TYPE_JPEG);
-	b_play_single 	= new wxButton(right_panel, mainID_play_single, wxT("Single Player"));
-	b_play_multi	= new wxButton(right_panel, mainID_play_multi, wxT("Multi Player"));
-	b_quit 			= new wxButton(right_panel, wxID_EXIT, wxT("Quit"));
+	b_play_single 	= new MyButton(right_panel, mainID_play_single, wxT("Single Player"));
+	b_play_multi	= new MyButton(right_panel, mainID_play_multi, wxT("Multi Player"));
+	b_quit 			= new MyButton(right_panel, wxID_EXIT, wxT("Quit"));
 
 	title->SetFont(h1_font);
 	b_play_single->SetFont(button_font);
@@ -73,8 +73,8 @@ SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
 	user_name_input = new wxTextCtrl(this, singleID_player_number, wxT("Player NO.1"));
 	user_number_label = new wxStaticText(this, wxID_ANY, wxT("Player Number: "));
 	user_number_input = new wxSpinCtrl(this, singleID_player_number, wxT("4"));
-	confirm = new wxButton(this, singleID_confirm, wxT("confirm"));
-	go_back = new wxButton(this, singleID_back, wxT("return"));
+	confirm = new MyButton(this, singleID_confirm, wxT("confirm"));
+	go_back = new MyButton(this, singleID_back, wxT("return"));
 
 	game_select->Insert(wxT("Poke0"), 0);
 	game_select->Insert(wxT("Poke1"), 1);
@@ -116,9 +116,9 @@ MultiGameMenu::MultiGameMenu (wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 	
 	title = new wxStaticText(this, wxID_ANY, wxT("Multi Player Game"));
-	join_game = new wxButton(this, multiID_join_game, wxT("Join game"));
-	create_game = new wxButton(this, multiID_create_game, wxT("Create game"));
-	go_back = new wxButton(this, multiID_back, wxT("Return"));
+	join_game = new MyButton(this, multiID_join_game, wxT("Join game"));
+	create_game = new MyButton(this, multiID_create_game, wxT("Create game"));
+	go_back = new MyButton(this, multiID_back, wxT("Return"));
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
 
@@ -161,8 +161,8 @@ MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
 	IP_input = new wxTextCtrl(this, joinID_IP);
 	passwd_label = new wxStaticText(this, wxID_ANY, wxT("Password: "));
 	passwd_input = new wxTextCtrl(this, joinID_passwd);
-	confirm = new wxButton(this, joinID_confirm, wxT("Confirm"));
-	go_back = new wxButton(this, joinID_back, wxT("Return"));
+	confirm = new MyButton(this, joinID_confirm, wxT("Confirm"));
+	go_back = new MyButton(this, joinID_back, wxT("Return"));
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
 
@@ -206,8 +206,8 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	user_number_input = new wxSpinCtrl(this, createID_player_number, wxT("4"));
 	passwd_label = new wxStaticText(this, wxID_ANY, wxT("Password: "));
 	passwd_input = new wxTextCtrl(this, createID_passwd);
-	confirm = new wxButton(this, createID_confirm, wxT("Confirm"));
-	go_back = new wxButton(this, createID_back, wxT("Return"));
+	confirm = new MyButton(this, createID_confirm, wxT("Confirm"));
+	go_back = new MyButton(this, createID_back, wxT("Return"));
 
 	game_select->Insert(wxT("Poke0"), 0);
 	game_select->Insert(wxT("Poke1"), 1);
@@ -259,8 +259,8 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[3]->SetDeck({0, 1, 2, 3});
 
 	midpan = new wxPanel(this);
-	deal = new wxButton(midpan, gameID_deal, "deal");
-	pass = new wxButton(midpan, gameID_pass, "pass");
+	deal = new MyButton(midpan, gameID_deal, "deal");
+	pass = new MyButton(midpan, gameID_pass, "pass");
 	timer = new wxTimer(this, gameID_count_down);
 	timer_label = new wxStaticText(midpan, wxID_ANY, "Time left:");
 	last_round = new DeckPanel(midpan, kFaceUp, kCenter);

@@ -7,6 +7,7 @@
 #include "image_panel.h"
 #include "deck.h"
 #include "game.h"
+#include "wrapper.h"
 
 class MainMenu : public wxPanel {
 public:
@@ -17,9 +18,9 @@ public:
 	wxPanel 	 *right_panel;
 	wxImagePanel *image;
 	wxStaticText *title;
-	wxButton 	 *b_play_single;
-	wxButton 	 *b_play_multi;
-	wxButton 	 *b_quit;
+	MyButton 	 *b_play_single;
+	MyButton 	 *b_play_multi;
+	MyButton 	 *b_quit;
 
 	void OnPlaySingle(wxCommandEvent& event);
 	void OnPlayMulti(wxCommandEvent& event);
@@ -41,8 +42,8 @@ public:
 	wxTextCtrl   	*user_name_input;
 	wxStaticText 	*user_number_label;
 	wxSpinCtrl   	*user_number_input;
-	wxButton		*confirm;
-	wxButton		*go_back;
+	MyButton		*confirm;
+	MyButton		*go_back;
 
 	void OnConfirm(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
@@ -57,9 +58,9 @@ public:
 
 	wxWindow		*p_parent;
 	wxStaticText	*title;
-	wxButton		*join_game;
-	wxButton		*create_game;
-	wxButton		*go_back;
+	MyButton		*join_game;
+	MyButton		*create_game;
+	MyButton		*go_back;
 
 	void OnJoin(wxCommandEvent &event);
 	void OnCreate(wxCommandEvent &event);
@@ -81,8 +82,8 @@ public:
 	wxTextCtrl		*IP_input;
 	wxStaticText	*passwd_label;
 	wxTextCtrl		*passwd_input;
-	wxButton		*confirm;
-	wxButton		*go_back;
+	MyButton		*confirm;
+	MyButton		*go_back;
 
 	void OnConfirm(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
@@ -105,8 +106,8 @@ public:
 	wxSpinCtrl   	*user_number_input;
 	wxStaticText	*passwd_label;
 	wxTextCtrl		*passwd_input;
-	wxButton		*confirm;
-	wxButton		*go_back;
+	MyButton		*confirm;
+	MyButton		*go_back;
 
 	void OnConfirm(wxCommandEvent &event);
 	void OnReturn(wxCommandEvent &event);
@@ -127,8 +128,8 @@ public:
 	wxTimer			*timer;
 	wxStaticText	*timer_label;
 	wxWindow		*p_parent;
-	wxButton		*deal;
-	wxButton		*pass;
+	MyButton		*deal;
+	MyButton		*pass;
 	wxClientDC		dc;
 	DeckPanel		*deck[4];
 	DeckPanel		*last_round;

@@ -5,6 +5,7 @@
 #include "wx/wx.h"
 
 class MyButton : public wxButton {
+public:
 	MyButton(wxWindow *parent,
 			 wxWindowID id,
 			 const wxString &label = wxEmptyString,
