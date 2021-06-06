@@ -42,12 +42,20 @@ Deck::Deck(const CardSet& card_set)
 	}
 }
 
-void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientation) {
+void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]) {
+	int i = 0;
 	for (auto &card : cards) {
-		std::cout << x << " " << y << std::endl;
+		int draw_y = y;
+		if (is_drawn[i] && orientation == kDown) {
+			draw_y -= k_delta_y;
+		}
 		switch (face) {
-			case kFaceUp   : dc.DrawBitmap(*card_pics[card], x, y); break;
-			case kFaceDown : dc.DrawBitmap(*card_pics[0], x, y); break;
+			case kFaceUp   :
+				dc.DrawBitmap(*card_pics[card], x, draw_y);
+				break;
+			case kFaceDown :
+				dc.DrawBitmap(*card_pics[0], x, draw_y);
+				break;
 		}
 		switch (orientation) {
 			case kLeft:
@@ -59,24 +67,90 @@ void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientati
 				x += k_delta_y;
 				break;
 		}
+		i++;
 	}
 }
 
 BEGIN_EVENT_TABLE(DeckPanel, wxPanel)
-	EVT_PAINT(DeckPanel::render)
+	EVT_PAINT(DeckPanel::OnRender)
+	EVT_LEFT_UP(DeckPanel::OnClick)
 END_EVENT_TABLE()
 
 DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
-	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient), dc(this) {
+	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient) {
 }
 
 void DeckPanel::SetDeck(const CardSet& card_set) {
 	deck = Deck(card_set);
 }
 
-void DeckPanel::render(wxPaintEvent &event) {
+void DeckPanel::Render() {
 	wxClientDC dc(this);
-	int x, y;
-	this->GetPosition(&x, &y);	// why use pointer in a c++ lib?
-	this->deck.Draw(dc, x, y, face, orientation);
+	int width, height;
+	this->GetClientSize(&width, &height);
+
+	int x, y;	// position of the deck
+	switch (orientation) {
+		case kUp:
+			x = 2 * k_card_width;
+			y = 0;
+			break;
+		case kDown:
+			x = 2 * k_card_width;
+			y = height - k_card_height;
+			break;
+		case kLeft:
+			x = 0;
+			y = 0;
+			break;
+		case kRight:
+			x = width - k_card_width;
+			y = 0;
+			break;		
+	}
+	// Draw an invisible rectangle to cover the region
+	dc.SetPen(wxPen("#EFEFEF"));
+	dc.SetBrush(wxBrush("#EFEFEF"));
+	dc.DrawRectangle(wxPoint(0, 0), GetSize());
+	deck.Draw(dc, x, y, face, orientation, is_draw);
+}
+
+void DeckPanel::OnRender(wxPaintEvent &event) {
+	Render();
+	event.Skip();
+}
+
+void DeckPanel::OnClick(wxMouseEvent &event) {
+	int mouse_x = event.GetPosition().x;
+	int mouse_y = event.GetPosition().y;
+	std::cerr << mouse_x << " " << mouse_y << std::endl;
+
+	if (orientation == kDown) {
+		int number_of_cards = deck.cards.size();
+		int x, y;
+		GetClientSize(nullptr, &y);
+		
+		x = 2 * k_card_width;
+		y -= k_card_height;
+		for (int i = 0; i < number_of_cards; i++) {
+			if (x < mouse_x && (x + k_delta_x > mouse_x || (i == number_of_cards - 1 && x + k_card_width > mouse_x))) {
+				if (is_draw[i]) {
+					if (y - k_delta_y < mouse_y && mouse_y < y - k_delta_y + k_card_height) {
+						is_draw[i] = false;
+						std::cerr << "Chosen " << i << std::endl;
+						break;
+					}
+				} else {
+					if (y < mouse_y && mouse_y < y + k_card_height) {
+						is_draw[i] = true;
+						std::cerr << "Chosen " << i << std::endl;
+						break;
+					}
+				}
+			}
+			x += k_delta_x;
+		}
+		Render();
+	}
+	event.Skip();
 }

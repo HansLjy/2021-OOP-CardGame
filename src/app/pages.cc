@@ -285,18 +285,21 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[1]->SetDeck({4, 5, 6, 7, 8});
 	deck[2]->SetDeck({1, 2, 3, 4, 5, 6, 7, 8, 9});
 	deck[3]->SetDeck({0, 1, 2, 3});
+
+	deck[0]->SetBackgroundColour("#000000");
+
 	midpan = new wxPanel(this);
 	timer = new wxStaticText(midpan, wxID_ANY, "Time left:");
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
-	hbox->Add(deck[1], 1);
-	hbox->Add(midpan, 5, wxEXPAND);
-	hbox->Add(deck[3], 1);
+	hbox->Add(deck[1], 2, wxEXPAND);
+	hbox->Add(midpan, 7, wxEXPAND);
+	hbox->Add(deck[3], 2, wxEXPAND);
 
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
-	vbox->Add(deck[2], 1);
-	vbox->Add(hbox, 5, wxEXPAND);
-	vbox->Add(deck[0], 1);
+	vbox->Add(deck[2], 2, wxEXPAND);
+	vbox->Add(hbox, 7, wxEXPAND);
+	vbox->Add(deck[0], 2, wxEXPAND);
 
 	SetSizer(vbox);
 }
