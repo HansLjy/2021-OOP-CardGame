@@ -64,6 +64,7 @@ void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientati
 				break;
 			case kUp:
 			case kDown:
+			case kCenter:
 				x += k_delta_y;
 				break;
 		}
@@ -106,11 +107,15 @@ void DeckPanel::Render() {
 		case kRight:
 			x = width - k_card_width;
 			y = 0;
+			break;
+		case kCenter:
+			x = width / 2 - (deck.cards.size() * k_delta_x + k_card_width) / 2;
+			y = height / 2 - k_card_height;
 			break;		
 	}
 	// Draw an invisible rectangle to cover the region
-	dc.SetPen(wxPen("#EFEFEF"));
-	dc.SetBrush(wxBrush("#EFEFEF"));
+	dc.SetPen(invisible_pen);
+	dc.SetBrush(invisible_brush);
 	dc.DrawRectangle(wxPoint(0, 0), GetSize());
 	deck.Draw(dc, x, y, face, orientation, is_draw);
 }

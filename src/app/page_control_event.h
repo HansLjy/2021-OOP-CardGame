@@ -34,3 +34,9 @@ enum {
 	createID_confirm,
 	createID_back
 };
+
+enum {
+	gameID_deal = 6000,
+	gameID_pass,
+	gameID_count_down
+};

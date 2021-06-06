@@ -13,7 +13,7 @@ const int k_delta_y = 20;
 const wxSize k_card_size(k_card_width, k_card_height);
 
 enum CardOrientation {
-	kLeft, kRight, kUp, kDown
+	kLeft, kRight, kUp, kDown, kCenter
 };
 
 enum CardFace {

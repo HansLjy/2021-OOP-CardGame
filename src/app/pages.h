@@ -114,11 +114,21 @@ public:
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
-	wxStaticText	*timer;
+	int 			count_down;
+	wxTimer			*timer;
+	wxStaticText	*timer_label;
 	wxWindow		*p_parent;
+	wxButton		*deal;
+	wxButton		*pass;
 	wxClientDC		dc;
 	DeckPanel		*deck[4];
+	DeckPanel		*last_round;
 	wxPanel			*midpan;
 
+	void OnDeal(wxCommandEvent &event);
+	void OnPass(wxCommandEvent &event);
+	void OnTimer(wxTimerEvent &event);
 	void render();
+
+	wxDECLARE_EVENT_TABLE();
 };

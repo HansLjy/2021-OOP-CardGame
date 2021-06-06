@@ -273,6 +273,11 @@ void MultiGameCreateSetting::OnReturn(wxCommandEvent &event) {
 	event.Skip();
 }
 
+wxBEGIN_EVENT_TABLE(GameInterface, wxPanel)
+	EVT_BUTTON(gameID_deal, GameInterface::OnDeal)
+	EVT_BUTTON(gameID_pass, GameInterface::OnPass)
+	EVT_TIMER(gameID_count_down, GameInterface::OnTimer)
+wxEND_EVENT_TABLE()
 
 GameInterface::GameInterface(wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent), dc(this) {
@@ -286,10 +291,24 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[2]->SetDeck({1, 2, 3, 4, 5, 6, 7, 8, 9});
 	deck[3]->SetDeck({0, 1, 2, 3});
 
-	deck[0]->SetBackgroundColour("#000000");
-
 	midpan = new wxPanel(this);
-	timer = new wxStaticText(midpan, wxID_ANY, "Time left:");
+	deal = new wxButton(midpan, gameID_deal, "deal");
+	pass = new wxButton(midpan, gameID_pass, "pass");
+	timer = new wxTimer(this, gameID_count_down);
+	timer_label = new wxStaticText(midpan, wxID_ANY, "Time left:");
+	last_round = new DeckPanel(midpan, kFaceUp, kCenter);
+	
+	timer->Start(1000);
+	last_round->SetDeck({10, 20, 30, 53});
+
+	wxBoxSizer *mid_vbox = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *mid_hbox = new wxBoxSizer(wxHORIZONTAL);
+	mid_hbox->Add(deal, 0, wxRIGHT, 10);
+	mid_hbox->Add(pass, 0, wxRIGHT, 10);
+	mid_vbox->Add(timer_label, 0, wxEXPAND);
+	mid_vbox->Add(last_round, 1, wxEXPAND);
+	mid_vbox->Add(mid_hbox, 0, wxALIGN_RIGHT);
+	midpan->SetSizer(mid_vbox);
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 	hbox->Add(deck[1], 2, wxEXPAND);
@@ -305,5 +324,24 @@ GameInterface::GameInterface(wxWindow *p_parent)
 }
 
 void GameInterface::render() {
+	count_down = 60;
 	std::cerr << "render!" << std::endl;
+}
+
+void GameInterface::OnDeal(wxCommandEvent &event) {
+	std::cerr << "Dealt!" << std::endl;
+}
+
+void GameInterface::OnPass(wxCommandEvent &event) {
+	std::cerr << "Pass!" << std::endl;
+}
+
+void GameInterface::OnTimer(wxTimerEvent &event) {
+	if (count_down < 0) {
+		count_down = 60;
+	}
+	std::cout << count_down-- << std::endl;
+	static char time_string[10];
+	itoa(count_down, time_string, 10);
+	timer_label->SetLabel(wxString("Time left in this round: ") + wxString(time_string) + wxString("s"));
 }
