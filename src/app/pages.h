@@ -17,7 +17,7 @@ public:
 	wxWindow 	 *p_parent;
 	wxPanel 	 *right_panel;
 	wxImagePanel *image;
-	wxStaticText *title;
+	MyLabel 	 *title;
 	MyButton 	 *b_play_single;
 	MyButton 	 *b_play_multi;
 	MyButton 	 *b_quit;
@@ -34,13 +34,13 @@ public:
 	SingleGameMenu () = delete;
 	SingleGameMenu (wxWindow *p_parent);
 
-	wxStaticText 	*title;
+	MyLabel 	*title;
 	wxWindow 	 	*p_parent;
-	wxStaticText 	*game_select_label;
+	MyLabel 	*game_select_label;
 	wxChoice		*game_select;
-	wxStaticText 	*user_name_label;
+	MyLabel 	*user_name_label;
 	wxTextCtrl   	*user_name_input;
-	wxStaticText 	*user_number_label;
+	MyLabel 	*user_number_label;
 	wxSpinCtrl   	*user_number_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
@@ -57,7 +57,7 @@ public:
 	MultiGameMenu (wxWindow *p_parent);
 
 	wxWindow		*p_parent;
-	wxStaticText	*title;
+	MyLabel	*title;
 	MyButton		*join_game;
 	MyButton		*create_game;
 	MyButton		*go_back;
@@ -75,12 +75,12 @@ public:
 	MultiGameJoinSetting (wxWindow *p_parent);
 	
 	wxWindow		*p_parent;
-	wxStaticText	*title;
-	wxStaticText	*user_name_label;
+	MyLabel	*title;
+	MyLabel	*user_name_label;
 	wxTextCtrl		*user_name_input;
-	wxStaticText	*IP_label;
+	MyLabel	*IP_label;
 	wxTextCtrl		*IP_input;
-	wxStaticText	*passwd_label;
+	MyLabel	*passwd_label;
 	wxTextCtrl		*passwd_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
@@ -97,14 +97,14 @@ public:
 	MultiGameCreateSetting (wxWindow *p_parent);
 
 	wxWindow		*p_parent;
-	wxStaticText	*title;
-	wxStaticText 	*game_select_label;
+	MyLabel	*title;
+	MyLabel 	*game_select_label;
 	wxChoice		*game_select;
-	wxStaticText	*user_name_label;
+	MyLabel	*user_name_label;
 	wxTextCtrl		*user_name_input;
-	wxStaticText 	*user_number_label;
+	MyLabel 	*user_number_label;
 	wxSpinCtrl   	*user_number_input;
-	wxStaticText	*passwd_label;
+	MyLabel	*passwd_label;
 	wxTextCtrl		*passwd_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
@@ -126,7 +126,7 @@ public:
 
 	int 			count_down;
 	wxTimer			*timer;
-	wxStaticText	*timer_label;
+	MyLabel			*timer_label;
 	wxWindow		*p_parent;
 	MyButton		*deal;
 	MyButton		*pass;
@@ -138,7 +138,7 @@ public:
 	void OnDeal(wxCommandEvent &event);
 	void OnPass(wxCommandEvent &event);
 	void OnTimer(wxTimerEvent &event);
-	void render();
+	void Render();
 
 	wxDECLARE_EVENT_TABLE();
 };

@@ -19,7 +19,7 @@ MainMenu::MainMenu(wxWindow* p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 
 	right_panel 	= new wxPanel(this);
-	title 			= new wxStaticText(right_panel, wxID_ANY, wxT("主菜单"));
+	title 			= new MyLabel(right_panel, wxID_ANY, wxT("主菜单"));
 	image 			= new wxImagePanel(this, wxString("./static/main.jpg"), wxBITMAP_TYPE_JPEG);
 	b_play_single 	= new MyButton(right_panel, mainID_play_single, wxT("Single Player"));
 	b_play_multi	= new MyButton(right_panel, mainID_play_multi, wxT("Multi Player"));
@@ -66,12 +66,12 @@ wxEND_EVENT_TABLE()
 SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
 	: wxPanel (p_parent), p_parent(p_parent) {
 
-	title = new wxStaticText(this, wxID_ANY, wxT("Single Player Mode"));
-	game_select_label = new wxStaticText(this, wxID_ANY, wxT("Choose game: "));
+	title = new MyLabel(this, wxID_ANY, wxT("Single Player Mode"));
+	game_select_label = new MyLabel(this, wxID_ANY, wxT("Choose game: "));
 	game_select = new wxChoice(this, singleID_game_select);
-	user_name_label = new wxStaticText(this, wxID_ANY, wxT("User Name: "));
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("User Name: "));
 	user_name_input = new wxTextCtrl(this, singleID_player_number, wxT("Player NO.1"));
-	user_number_label = new wxStaticText(this, wxID_ANY, wxT("Player Number: "));
+	user_number_label = new MyLabel(this, wxID_ANY, wxT("Player Number: "));
 	user_number_input = new wxSpinCtrl(this, singleID_player_number, wxT("4"));
 	confirm = new MyButton(this, singleID_confirm, wxT("confirm"));
 	go_back = new MyButton(this, singleID_back, wxT("return"));
@@ -115,7 +115,7 @@ wxEND_EVENT_TABLE()
 MultiGameMenu::MultiGameMenu (wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 	
-	title = new wxStaticText(this, wxID_ANY, wxT("Multi Player Game"));
+	title = new MyLabel(this, wxID_ANY, wxT("Multi Player Game"));
 	join_game = new MyButton(this, multiID_join_game, wxT("Join game"));
 	create_game = new MyButton(this, multiID_create_game, wxT("Create game"));
 	go_back = new MyButton(this, multiID_back, wxT("Return"));
@@ -154,12 +154,12 @@ wxEND_EVENT_TABLE()
 MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 	
-	title = new wxStaticText(this, wxID_ANY, wxT("Join Game"));
-	user_name_label = new wxStaticText(this, wxID_ANY, wxT("User Name: "));
+	title = new MyLabel(this, wxID_ANY, wxT("Join Game"));
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("User Name: "));
 	user_name_input = new wxTextCtrl(this, joinID_username, wxT("Player NO.1"));
-	IP_label = new wxStaticText(this, wxID_ANY, wxT("IP: "));
+	IP_label = new MyLabel(this, wxID_ANY, wxT("IP: "));
 	IP_input = new wxTextCtrl(this, joinID_IP);
-	passwd_label = new wxStaticText(this, wxID_ANY, wxT("Password: "));
+	passwd_label = new MyLabel(this, wxID_ANY, wxT("Password: "));
 	passwd_input = new wxTextCtrl(this, joinID_passwd);
 	confirm = new MyButton(this, joinID_confirm, wxT("Confirm"));
 	go_back = new MyButton(this, joinID_back, wxT("Return"));
@@ -197,14 +197,14 @@ wxEND_EVENT_TABLE()
 
 MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
-	title = new wxStaticText(this, wxID_ANY, wxT("Create Game"));
-	game_select_label = new wxStaticText(this, wxID_ANY, wxT("Choose game: "));
+	title = new MyLabel(this, wxID_ANY, wxT("Create Game"));
+	game_select_label = new MyLabel(this, wxID_ANY, wxT("Choose game: "));
 	game_select = new wxChoice(this, createID_game_select);
-	user_name_label = new wxStaticText(this, wxID_ANY, wxT("User Name: "));
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("User Name: "));
 	user_name_input = new wxTextCtrl(this, createID_username, wxT("Player NO.1"));
-	user_number_label = new wxStaticText(this, wxID_ANY, wxT("Player Number: "));
+	user_number_label = new MyLabel(this, wxID_ANY, wxT("Player Number: "));
 	user_number_input = new wxSpinCtrl(this, createID_player_number, wxT("4"));
-	passwd_label = new wxStaticText(this, wxID_ANY, wxT("Password: "));
+	passwd_label = new MyLabel(this, wxID_ANY, wxT("Password: "));
 	passwd_input = new wxTextCtrl(this, createID_passwd);
 	confirm = new MyButton(this, createID_confirm, wxT("Confirm"));
 	go_back = new MyButton(this, createID_back, wxT("Return"));
@@ -262,10 +262,9 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deal = new MyButton(midpan, gameID_deal, "deal");
 	pass = new MyButton(midpan, gameID_pass, "pass");
 	timer = new wxTimer(this, gameID_count_down);
-	timer_label = new wxStaticText(midpan, wxID_ANY, "Time left:");
+	timer_label = new MyLabel(midpan, wxID_ANY, "Time left:");
 	last_round = new DeckPanel(midpan, kFaceUp, kCenter);
 	
-	timer->Start(1000);
 	last_round->SetDeck({10, 20, 30, 53});
 
 	wxBoxSizer *mid_vbox = new wxBoxSizer(wxVERTICAL);
@@ -290,9 +289,14 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	SetSizer(vbox);
 }
 
-void GameInterface::render() {
-	count_down = 60;
+void GameInterface::Render() {
 	std::cerr << "render!" << std::endl;
+	count_down = 60;
+	timer->Start(1000);
+	for (int i = 0; i < 4; i++) {
+		deck[i]->Render();
+	}
+	last_round->Render();
 }
 
 void GameInterface::OnDeal(wxCommandEvent &event) {
@@ -305,9 +309,10 @@ void GameInterface::OnPass(wxCommandEvent &event) {
 
 void GameInterface::OnTimer(wxTimerEvent &event) {
 	if (count_down < 0) {
-		count_down = 60;
+		timer->Stop();
 	}
-	std::cout << count_down-- << std::endl;
+	count_down--;
+	std::cout << count_down << std::endl;
 	static char time_string[10];
 	itoa(count_down, time_string, 10);
 	timer_label->SetLabel(wxString("Time left in this round: ") + wxString(time_string) + wxString("s"));
