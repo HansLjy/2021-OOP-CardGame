@@ -6,7 +6,6 @@
 #include "wx/choice.h"
 #include "image_panel.h"
 #include "deck.h"
-#include "game.h"
 #include "wrapper.h"
 
 class MainMenu : public wxPanel {

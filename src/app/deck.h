@@ -1,5 +1,5 @@
 #pragma once
-#include "game.h"
+#include "card.h"
 #include "wx/bitmap.h"
 #include "wx/dcclient.h"
 #include "global.h"
@@ -21,27 +21,25 @@ enum CardFace {
 };
 
 class Deck {
-	static bool initialized;
-	static wxBitmap *card_pics[60];
+	static bool initialized;		// Whether the card images has been loaded
+	static wxBitmap *card_pics[60];	// Pictures of the cards
 
 public:
-	CardSet cards;
+	CardSet cards;					// The card in this deck
 	Deck () = default;
-	Deck (const CardSet& card_set);
+	Deck (const CardSet& card_set);	// Use a cardset to initialize the deck
 
-	/**
-	 * @brief Draw card from position (x, y) (upper left corner)
-	 */
+	// Draw card from position (x, y) (upper left corner)
 	void Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]);
 };
 
 class DeckPanel : public wxPanel {
-	CardFace face;
-	CardOrientation orientation;
+	CardFace face;					// face up or face down
+	CardOrientation orientation;	// the position of the cardset
 
 	wxWindow *p_parent;
-	Deck deck;
-	bool is_draw[30];
+	Deck deck;						// The deck in the panel
+	bool is_draw[60];				// whether the card has been drawn
 
 	void OnPaint();
 	void OnClick();
@@ -52,6 +50,7 @@ public:
 
 	void SetDeck(const CardSet& card_set);
 	void Render();
+
 	void OnRender(wxPaintEvent &event);
 	void OnClick(wxMouseEvent &event);
 

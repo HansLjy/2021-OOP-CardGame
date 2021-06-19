@@ -8,6 +8,9 @@
 #include "center_block_sizer.h"
 #include "page_control_event.h"
 #include "deck.h"
+#include "page_control.h"
+
+#define get_controller(controller) auto (controller) = static_cast<PageController*>(this->p_parent);
 
 wxBEGIN_EVENT_TABLE(MainMenu, wxPanel)
 	EVT_BUTTON(mainID_play_single, MainMenu::OnPlaySingle)
@@ -49,11 +52,15 @@ void MainMenu::OnQuit(wxCommandEvent& event) {
 }
 
 void MainMenu::OnPlaySingle(wxCommandEvent& event) {
+	auto control = static_cast<PageController*>(this->p_parent);
+	control->app_status.single_multi = kSingle;
 	std::cerr << "Select Single" << std::endl;
 	event.Skip();
 }
 
 void MainMenu::OnPlayMulti(wxCommandEvent& event) {
+	auto control = static_cast<PageController*>(this->p_parent);
+	control->app_status.single_multi = kMulti;
 	std::cerr << "Select Multi" << std::endl;
 	event.Skip();
 }
@@ -76,8 +83,8 @@ SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
 	confirm = new MyButton(this, singleID_confirm, wxT("confirm"));
 	go_back = new MyButton(this, singleID_back, wxT("return"));
 
-	game_select->Insert(wxT("Poke0"), 0);
-	game_select->Insert(wxT("Poke1"), 1);
+	game_select->Insert(wxT("争上游"), 0);
+	game_select->Insert(wxT("斗地主"), 1);
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
@@ -97,6 +104,13 @@ SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
 }
 
 void SingleGameMenu::OnConfirm(wxCommandEvent &event) {
+	get_controller(control)
+	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
+	control->app_status.user_name = user_name_input->GetLineText(0);
+	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
+	control->app_status.player_number = user_number_input->GetValue();
+	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
+	control->app_status.game_type = game_select->GetSelection() == 0 ? kPoke : kLandlord;
 	std::cerr << "Click confirm" << std::endl;
 	event.Skip();
 }
@@ -132,11 +146,15 @@ MultiGameMenu::MultiGameMenu (wxWindow *p_parent)
 }
 
 void MultiGameMenu::OnJoin(wxCommandEvent &event) {
+	get_controller(control);
+	control->app_status.join_create = kJoin;
 	std::cerr << "Click Join" << std::endl;
 	event.Skip();
 }
 
 void MultiGameMenu::OnCreate(wxCommandEvent &event) {
+	get_controller(control);
+	control->app_status.join_create = kCreate;
 	std::cerr << "Click Create" << std::endl;
 	event.Skip();
 }
@@ -181,6 +199,13 @@ MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
 }
 
 void MultiGameJoinSetting::OnConfirm(wxCommandEvent &event) {
+	get_controller(control);
+	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
+	control->app_status.user_name = user_name_input->GetLineText(0);
+	std::cerr << "IP address: " << IP_input->GetLineText(0) << std::endl;
+	control->app_status.IP_address = IP_input->GetLineText(0);
+	std::cerr << "Password: " << passwd_input->GetLineText(0) << std::endl;
+	control->app_status.passwd = passwd_input->GetLineText(0);
 	std::cerr << "Click Confirm" << std::endl;
 	event.Skip();
 }
@@ -209,8 +234,8 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	confirm = new MyButton(this, createID_confirm, wxT("Confirm"));
 	go_back = new MyButton(this, createID_back, wxT("Return"));
 
-	game_select->Insert(wxT("Poke0"), 0);
-	game_select->Insert(wxT("Poke1"), 1);
+	game_select->Insert(wxT("争上游"), 0);
+	game_select->Insert(wxT("斗地主"), 1);
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
@@ -231,6 +256,15 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 }
 
 void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
+	get_controller(control);
+	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
+	control->app_status.game_type = game_select->GetSelection() == 0 ? kPoke : kLandlord;
+	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
+	control->app_status.user_name = user_name_input->GetLineText(0);
+	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
+	control->app_status.player_number = user_number_input->GetValue();
+	std::cerr << "Password: " << passwd_input->GetLineText(0) << std::endl;
+	control->app_status.passwd = passwd_input->GetLineText(0);
 	std::cerr << "Click Confirm" << std::endl;
 	event.Skip();
 }
@@ -253,10 +287,10 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[1] = new DeckPanel(this, kFaceDown, kLeft);
 	deck[2] = new DeckPanel(this, kFaceDown, kUp);
 	deck[3] = new DeckPanel(this, kFaceDown, kRight);
-	deck[0]->SetDeck({1, 2, 3});
-	deck[1]->SetDeck({4, 5, 6, 7, 8});
-	deck[2]->SetDeck({1, 2, 3, 4, 5, 6, 7, 8, 9});
-	deck[3]->SetDeck({0, 1, 2, 3});
+	deck[0]->SetDeck(CardSet(10));
+	deck[1]->SetDeck(CardSet(10));
+	deck[2]->SetDeck(CardSet(10));
+	deck[3]->SetDeck(CardSet(10));
 
 	midpan = new wxPanel(this);
 	deal = new MyButton(midpan, gameID_deal, "deal");
@@ -265,7 +299,7 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	timer_label = new MyLabel(midpan, wxID_ANY, "Time left:");
 	last_round = new DeckPanel(midpan, kFaceUp, kCenter);
 	
-	last_round->SetDeck({10, 20, 30, 53});
+	last_round->SetDeck(CardSet(10));
 
 	wxBoxSizer *mid_vbox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *mid_hbox = new wxBoxSizer(wxHORIZONTAL);

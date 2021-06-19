@@ -22,6 +22,7 @@ wxBitmap *RescaleBitmap (const wxBitmap& bitmap, const wxSize& new_size = k_card
 	return new wxBitmap(image.Scale(new_size.GetWidth(), new_size.GetHeight(), wxIMAGE_QUALITY_HIGH));
 }
 
+// Ininitialize the cardset pictures
 Deck::Deck(const CardSet& card_set)
 	: cards(card_set) {
 	if (initialized == false) {
@@ -42,16 +43,32 @@ Deck::Deck(const CardSet& card_set)
 	}
 }
 
+int getCardID(const Card& card) {
+	switch (card.GetSuit()) {
+		case club:
+			return card.GetRank();
+		case diamond:
+			return 13 + card.GetRank();
+		case spade:
+			return 26 + card.GetRank();
+		case heart:
+			return 39 + card.GetRank();
+		case joker:
+			return card.GetRank() == 0 ? 54 : 53;
+	}
+}
+
 void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]) {
-	int i = 0;
-	for (auto &card : cards) {
+	int n = cards.GetNumOfCards();
+	for (int i = 0; i < n; i++) {
+		auto card = cards.GetCard(i);
 		int draw_y = y;
 		if (is_drawn[i] && orientation == kDown) {
 			draw_y -= k_delta_y;
 		}
 		switch (face) {
 			case kFaceUp   :
-				dc.DrawBitmap(*card_pics[card], x, draw_y);
+				dc.DrawBitmap(*card_pics[getCardID(card)], x, draw_y);
 				break;
 			case kFaceDown :
 				dc.DrawBitmap(*card_pics[0], x, draw_y);
@@ -68,7 +85,6 @@ void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientati
 				x += k_delta_y;
 				break;
 		}
-		i++;
 	}
 }
 
@@ -109,7 +125,7 @@ void DeckPanel::Render() {
 			y = 0;
 			break;
 		case kCenter:
-			x = width / 2 - (deck.cards.size() * k_delta_x + k_card_width) / 2;
+			x = width / 2 - (deck.cards.GetNumOfCards() * k_delta_x + k_card_width) / 2;
 			y = height / 2 - k_card_height;
 			break;		
 	}
@@ -131,7 +147,7 @@ void DeckPanel::OnClick(wxMouseEvent &event) {
 	std::cerr << mouse_x << " " << mouse_y << std::endl;
 
 	if (orientation == kDown) {
-		int number_of_cards = deck.cards.size();
+		int number_of_cards = deck.cards.GetNumOfCards();
 		int x, y;
 		GetClientSize(nullptr, &y);
 		

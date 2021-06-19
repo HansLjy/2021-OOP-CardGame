@@ -2,8 +2,35 @@
 #include "wx/simplebook.h"
 #include "pages.h"
 
+enum GUISingleOrMulti {
+	kSingle = 0,
+	kMulti
+};
+
+enum GUIGameType {
+	kPoke = 0,
+	kLandlord
+};
+
+enum GUIJoinOrCreate {
+	kJoin,
+	kCreate
+};
+
+struct AppStatus {
+	GUISingleOrMulti single_multi;
+	GUIGameType	game_type;
+	GUIJoinOrCreate join_create;
+	wxString user_name;
+	wxString IP_address;
+	wxString passwd;
+	int player_number;
+};
+
 class PageController : public wxSimplebook {
 public:
+	AppStatus app_status;
+
 	PageController () = delete;
 	PageController (wxWindow* p_parent);
 	MainMenu				*main_menu;
