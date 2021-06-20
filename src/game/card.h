@@ -21,7 +21,6 @@ class Card {
     // Do not care about the mapping rule when using the class.
     // Please use ID only for traverals. Otherwise use suit & rank.
 public:
-	Card() = default;
     Card(int ID); // returns a card of the specified ID, or throws "invalid_card_ID"
     Card(int suit, int rank); // returns a card of the specified suit & rank, or throws "invalid_suit" or "invalid_rank"
     int GetID() const; // returns the card's ID

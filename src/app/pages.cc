@@ -274,6 +274,58 @@ void MultiGameCreateSetting::OnReturn(wxCommandEvent &event) {
 	event.Skip();
 }
 
+wxBEGIN_EVENT_TABLE(GamePending, wxPanel)
+	EVT_TIMER(pendingID_timer, GamePending::OnTimer)
+wxEND_EVENT_TABLE()
+
+GamePending::GamePending(wxWindow *p_parent) : wxPanel(p_parent), p_parent(p_parent) {
+	wait_label = new MyLabel(this, wxID_ANY, wxT("正在等待玩家加入，等待时长："));
+	timer = new wxTimer(this, pendingID_timer);
+	CenterBlockSizer *sizer = new CenterBlockSizer(this);
+	sizer->AddWidget(wait_label, true);
+	sizer->Create();
+	SetSizer(sizer);
+}
+
+void GamePending::OnTimer(wxTimerEvent &event) {
+	static char time_string[10];
+	itoa(count, time_string, 10);
+	wait_label->SetLabelText(wxT("正在等待玩家加入，等待时长：") + wxString(time_string) + "s");
+	count++;
+}
+
+void GamePending::StartPending() {
+	timer->Start(1000);
+}
+
+wxBEGIN_EVENT_TABLE(GameOver, wxPanel)
+	EVT_BUTTON(overID_back, GameOver::OnReturn)
+wxEND_EVENT_TABLE()
+
+GameOver::GameOver(wxWindow *p_parent) : wxPanel(p_parent), p_parent(p_parent) {
+	go_back = new MyButton(this, overID_back, wxT("返回主菜单"));
+	title = new MyLabel(this, wxID_ANY, wxT("游戏结束！"));
+	winner_label = new MyLabel(this, wxID_ANY, wxT("获胜的玩家是："));
+
+	CenterBlockSizer *sizer = new CenterBlockSizer(this);
+	sizer->AddWidget(title, true);
+	sizer->AddWidget(winner_label, true);
+	sizer->AddWidget(go_back, true);
+	sizer->Create();
+
+	SetSizer(sizer);
+}
+
+void GameOver::OnReturn(wxCommandEvent &event) {
+	std::cerr << "Click Return" << std::endl;
+	event.Skip();
+}
+
+void GameOver::SetWinner() {
+	get_controller(control);
+	winner_label->SetLabelText(wxT("获胜的玩家是：") + control->app_status.winner);
+}
+
 wxBEGIN_EVENT_TABLE(GameInterface, wxPanel)
 	EVT_BUTTON(gameID_deal, GameInterface::OnDeal)
 	EVT_BUTTON(gameID_pass, GameInterface::OnPass)

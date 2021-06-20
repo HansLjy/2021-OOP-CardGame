@@ -33,13 +33,13 @@ public:
 	SingleGameMenu () = delete;
 	SingleGameMenu (wxWindow *p_parent);
 
-	MyLabel 	*title;
+	MyLabel 		*title;
 	wxWindow 	 	*p_parent;
-	MyLabel 	*game_select_label;
+	MyLabel 		*game_select_label;
 	wxChoice		*game_select;
-	MyLabel 	*user_name_label;
+	MyLabel 		*user_name_label;
 	wxTextCtrl   	*user_name_input;
-	MyLabel 	*user_number_label;
+	MyLabel 		*user_number_label;
 	wxSpinCtrl   	*user_number_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
@@ -56,7 +56,7 @@ public:
 	MultiGameMenu (wxWindow *p_parent);
 
 	wxWindow		*p_parent;
-	MyLabel	*title;
+	MyLabel			*title;
 	MyButton		*join_game;
 	MyButton		*create_game;
 	MyButton		*go_back;
@@ -74,12 +74,12 @@ public:
 	MultiGameJoinSetting (wxWindow *p_parent);
 	
 	wxWindow		*p_parent;
-	MyLabel	*title;
-	MyLabel	*user_name_label;
+	MyLabel			*title;
+	MyLabel			*user_name_label;
 	wxTextCtrl		*user_name_input;
-	MyLabel	*IP_label;
+	MyLabel			*IP_label;
 	wxTextCtrl		*IP_input;
-	MyLabel	*passwd_label;
+	MyLabel			*passwd_label;
 	wxTextCtrl		*passwd_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
@@ -96,14 +96,14 @@ public:
 	MultiGameCreateSetting (wxWindow *p_parent);
 
 	wxWindow		*p_parent;
-	MyLabel	*title;
-	MyLabel 	*game_select_label;
+	MyLabel			*title;
+	MyLabel 		*game_select_label;
 	wxChoice		*game_select;
-	MyLabel	*user_name_label;
+	MyLabel			*user_name_label;
 	wxTextCtrl		*user_name_input;
-	MyLabel 	*user_number_label;
+	MyLabel 		*user_number_label;
 	wxSpinCtrl   	*user_number_input;
-	MyLabel	*passwd_label;
+	MyLabel			*passwd_label;
 	wxTextCtrl		*passwd_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
@@ -114,8 +114,35 @@ public:
 	wxDECLARE_EVENT_TABLE();
 };
 
-class GameOverPage : public wxPanel {
+class GamePending : public wxPanel {
+public:
+	GamePending () = delete;
+	GamePending (wxWindow *p_parent);
 
+	int			count;
+	wxWindow	*p_parent;
+	wxTimer		*timer;
+	MyLabel		*wait_label;
+
+	void StartPending();
+	void OnTimer(wxTimerEvent& event);
+
+	wxDECLARE_EVENT_TABLE();
+};
+
+class GameOver : public wxPanel {
+	wxWindow	*p_parent;
+	wxButton	*go_back;
+	MyLabel		*winner_label;
+	MyLabel		*title;
+
+public:
+	GameOver () = delete;
+	GameOver (wxWindow *p_parent);	
+
+	void SetWinner();
+	void OnReturn(wxCommandEvent &event);
+	wxDECLARE_EVENT_TABLE();
 };
 
 class GameInterface : public wxPanel {

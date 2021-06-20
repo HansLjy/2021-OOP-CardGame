@@ -24,6 +24,7 @@ struct AppStatus {
 	wxString user_name;
 	wxString IP_address;
 	wxString passwd;
+	wxString winner = "Hans & Stella";
 	int player_number;
 };
 
@@ -38,6 +39,8 @@ public:
 	MultiGameMenu			*multi_game_menu;
 	MultiGameJoinSetting	*multi_game_join_setting;
 	MultiGameCreateSetting	*multi_game_create_setting;
+	GamePending				*game_pending;
+	GameOver				*game_over;
 	GameInterface			*game_interface;
 
 	void OnQuit(wxCommandEvent& event);

@@ -7,6 +7,8 @@ enum {
 	kMultiGameMenu,
 	kMultiGameJoinSetting,
 	kMultiGameCreateSetting,
+	kGamePending,
+	kGameOver,
 	kGameInterface,
 };
 
@@ -27,6 +29,12 @@ PageController::PageController(wxWindow* p_parent)
 	multi_game_create_setting = new MultiGameCreateSetting(this);
 	AddPage(multi_game_create_setting, wxT("Create Game"));
 
+	game_pending = new GamePending(this);
+	AddPage(game_pending, wxT("Pending"));
+
+	game_over = new GameOver(this);
+	AddPage(game_over, wxT("Over"));
+
 	game_interface = new GameInterface(this);
 	AddPage(game_interface, wxT("Game Interface"));
 
@@ -41,6 +49,7 @@ PageController::PageController(wxWindow* p_parent)
 	Connect(joinID_back, 			wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(createID_confirm, 		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(createID_back, 			wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
+	Connect(overID_back, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
 	Connect(wxID_EXIT, 		  		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnQuit));
 }
 
@@ -71,6 +80,8 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case createID_confirm:
 			// TODO
+			game_over->SetWinner();
+			ChangeSelection(kGameOver);
 			break;
 		case createID_back:
 			ChangeSelection(kMultiGameMenu);
@@ -82,7 +93,11 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameMenu);
 			break;
 		case joinID_confirm:
-			// TODO
+			game_pending->StartPending();
+			ChangeSelection(kGamePending);
+			break;
+		case overID_back:
+			ChangeSelection(kMainMenu);
 			break;
 		default:
 			event.Skip();

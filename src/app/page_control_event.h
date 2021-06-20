@@ -40,3 +40,11 @@ enum {
 	gameID_pass,
 	gameID_count_down
 };
+
+enum {
+	pendingID_timer = 7000
+};
+
+enum {
+	overID_back = 8000
+};
