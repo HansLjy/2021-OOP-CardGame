@@ -344,23 +344,46 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[2]->SetDeck(CardSet(10));
 	deck[3]->SetDeck(CardSet(10));
 
+	info_label[0] = new MyLabel(deck[0], wxID_ANY, wxT("Player 0"));
+	info_label[1] = new MyLabel(deck[1], wxID_ANY, wxT("Player 0"));
+	info_label[2] = new MyLabel(deck[2], wxID_ANY, wxT("Player 0"));
+	info_label[3] = new MyLabel(deck[3], wxID_ANY, wxT("Player 0"));
+
 	midpan = new wxPanel(this);
 	deal = new MyButton(midpan, gameID_deal, "deal");
 	pass = new MyButton(midpan, gameID_pass, "pass");
 	timer = new wxTimer(this, gameID_count_down);
 	timer_label = new MyLabel(midpan, wxID_ANY, "Time left:");
-	last_round = new DeckPanel(midpan, kFaceUp, kCenter);
+
+	last_round[0] = new DeckPanel(midpan, kFaceUp, kCenter);
+	last_round[1] = new DeckPanel(midpan, kFaceUp, kRight);
+	last_round[2] = new DeckPanel(midpan, kFaceUp, kCenter);
+	last_round[3] = new DeckPanel(midpan, kFaceUp, kLeft);
 	
-	last_round->SetDeck(CardSet(10));
+	last_round[0]->SetDeck(CardSet(10));
+	last_round[1]->SetDeck(CardSet(10));
+	last_round[2]->SetDeck(CardSet(10));
+	last_round[3]->SetDeck(CardSet(10));
 
 	wxBoxSizer *mid_vbox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *mid_hbox = new wxBoxSizer(wxHORIZONTAL);
-	mid_hbox->Add(deal, 0, wxRIGHT, 10);
-	mid_hbox->Add(pass, 0, wxRIGHT, 10);
-	mid_vbox->Add(timer_label, 0, wxEXPAND);
-	mid_vbox->Add(last_round, 1, wxEXPAND);
-	mid_vbox->Add(mid_hbox, 0, wxALIGN_RIGHT);
-	midpan->SetSizer(mid_vbox);
+	wxBoxSizer *mid_hbox_inner = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *mid_vbox_inner = new wxBoxSizer(wxVERTICAL);
+
+
+	mid_hbox->Add(last_round[3], 1, wxEXPAND);
+	mid_hbox->Add(mid_vbox, 2, wxEXPAND);
+	mid_hbox->Add(last_round[1], 1, wxEXPAND);
+
+	mid_vbox->Add(last_round[2], 1, wxEXPAND);
+	mid_vbox->Add(mid_vbox_inner, 1, wxEXPAND);
+	mid_vbox->Add(last_round[0], 1, wxEXPAND);
+
+	mid_vbox_inner->Add(timer_label, 1, wxEXPAND);
+	mid_vbox_inner->Add(mid_hbox_inner, 1, wxEXPAND);
+	mid_hbox_inner->Add(deal, 0, wxRIGHT, 10);
+	mid_hbox_inner->Add(pass, 0, wxRIGHT, 10);
+	midpan->SetSizer(mid_hbox);
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 	hbox->Add(deck[1], 2, wxEXPAND);
@@ -376,13 +399,19 @@ GameInterface::GameInterface(wxWindow *p_parent)
 }
 
 void GameInterface::Render() {
-	std::cerr << "render!" << std::endl;
 	count_down = 60;
 	timer->Start(1000);
+
+	deck[0]->SetDeck(my_cards);
+	for (int i = 1; i < 4; i++) {
+		CardSet card_set(num_cards[i]);
+		deck[i]->SetDeck(CardSet(num_cards[i]));
+	}
+
 	for (int i = 0; i < 4; i++) {
 		deck[i]->Render();
+		last_round[i]->Render();
 	}
-	last_round->Render();
 }
 
 void GameInterface::OnDeal(wxCommandEvent &event) {

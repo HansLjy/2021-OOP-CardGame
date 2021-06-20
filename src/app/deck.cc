@@ -118,11 +118,11 @@ void DeckPanel::Render() {
 			break;
 		case kLeft:
 			x = 0;
-			y = 0;
+			y = 30;
 			break;
 		case kRight:
 			x = width - k_card_width;
-			y = 0;
+			y = 30;
 			break;
 		case kCenter:
 			x = width / 2 - (deck.cards.GetNumOfCards() * k_delta_x + k_card_width) / 2;

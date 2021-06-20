@@ -146,6 +146,10 @@ public:
 };
 
 class GameInterface : public wxPanel {
+	int num_cards[4];	// Number of cards
+	CardSet my_cards;	// My cards
+	CardSet last_rount[4];
+
 public:
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
@@ -153,12 +157,14 @@ public:
 	int 			count_down;
 	wxTimer			*timer;
 	MyLabel			*timer_label;
+	MyLabel			*game_info;
+	MyLabel			*info_label[4];
 	wxWindow		*p_parent;
 	MyButton		*deal;
 	MyButton		*pass;
 	wxClientDC		dc;
 	DeckPanel		*deck[4];
-	DeckPanel		*last_round;
+	DeckPanel		*last_round[4];
 	wxPanel			*midpan;
 
 	void OnDeal(wxCommandEvent &event);

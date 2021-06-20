@@ -15,7 +15,7 @@ class Client:public Port{
     //     queue<GameMessage> Buf;
     public:
 
-    int JoinRoom(const char* IP); // 接收或超时后才返回
+    std::vector<std::string> JoinRoom(std::string name, const char* IP); // 接收或超时后才返回
     // int QuitRoom();
 
     void SendGameMsg(const Package &p) const;
