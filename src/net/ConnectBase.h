@@ -1,12 +1,17 @@
 // ConnectBase.h
 #ifndef _CONNECT_BASE_H
 #define _CONNECT_BASE_H
+// #include "game.h"
 // #include "GameMessage.h"
 #include <WinSock2.h>
 #include <process.h>
 #include <iostream>
 
-// #define rec_server (-1)
+//#include "package.h"
+class Package;
+using std::vector;
+using std::string;
+#define rec_server (-1)
 
 namespace game_connect{
     // const int message_fetched=0;

@@ -3,9 +3,7 @@
 #define _PORT_H
 #include "ConnectBase.h"
 #include <queue>
-
-#include "package.h"
-
+// using namespace game_connect;
 class Port:public ConnectBase{
     protected:
         // CONNECT_STATE state;
@@ -17,6 +15,6 @@ class Port:public ConnectBase{
 
     public:
         virtual void SendGameMsg(const Package &p) const;
-        virtual Package CollectGameMsg(int sender=i_server);
+        virtual Package CollectGameMsg(int sender=rec_server);
 };
 #endif
