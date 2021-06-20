@@ -1,7 +1,6 @@
 // ConnectBase.h
 #ifndef _CONNECT_BASE_H
 #define _CONNECT_BASE_H
-#include "game.h"
 // #include "GameMessage.h"
 #include <WinSock2.h>
 #include <process.h>

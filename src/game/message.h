@@ -1,107 +1,66 @@
-#pragma once
+// see message.xlsx for more explanations
 
+#ifndef MESSAGE_H
+#define MESSAGE_H
+
+#include <string>
+#include <array>
+
+// #include "clockint.h"
 #include "card.h"
-using std::string;
+
+using namespace std;
 
 enum MsgType {
-    start,
-    finish,
-    drop,
-    error,
-    print,
-    think,
-    deal,
-    auction,
-    setlandlord,
-    changebet,
-    play,
-    deny,
-    bomb,
-    spring
+    m_empty,
+    m_start,
+    m_end,
+    m_disptext,
+    m_dispeffect,
+    m_dispscore,
+    m_deal,
+    m_bid,
+    m_changestake,
+    m_setlandlord,
+    m_playout,
+    m_deny
 };
 
 class Message {
-    string str;
+    MsgType type;
+    bool isr;
+    string spar;
+    string scard;
+    string ext;
 public:
-    Message(const string &s);
-    bool IsRequest() const;
-    MsgType GetType() const;
-    int GetPlayer() const;
-    int GetTime() const;
-    int GetPar(int i = 0) const;
-    CardSet GetCards() const;
-    string GetExtension() const;
-    void SetPar(int i, int val);
+    Message(MsgType t = m_empty, bool b = false, const CardSet &s = CardSet()); // returns a message with unspecified parameters
+    Message(const string &s); // decodes s to a message
+    MsgType GetType() const; // returns the type
+    bool IsRequest() const; // returns whether the message requires a reply
+    int GetPar(int k = 0) const; // returns the kth parameter, with k in [0, 8)
+    int GetPlayer() const; // returns the 7th parameter, which is usually a player index
+    int GetTime() const; // returns the 6th parameter, which is usually a time
+    CardSet GetCards() const; // returns the card set parameter
+    string GetExtension() const; // returns the extension, usually storing variable-length parameters e.g. text to display
+    const string &GetExtensionR() const; // returns the extension by reference
+    void SetType(MsgType t); // sets the type to t
+    void SetIsRequest(bool b);
+    void SetPar(int k, int v); // sets the kth parameter to val
+    void SetPlayer(int p);
+    void SetTime(int t);
     void SetCards(const CardSet &s);
-    string String() const;
+    void SetExtension(const string &s);
+    string String() const; // encodes the message to a string
 };
 
-/*
-需要写的伪代码：
-Client::Play() {
-    while (true) {
-        Package p = CollectGameMsg(rec_server);
-        if (!p.GetHeader().IsSuccess) {
-            显示：服务器挂了，游戏结束
-            break;
-        }
-        Message m = Message(p.GetData());
-        MsgType t = m.GetType();
-        if (t == start) {
-            初始化之类的，可能什么也不用干
-        } else if (t == finish) {
-            if (m.GetPar() > 0) {
-                显示：你赢了！
-            } else {
-                显示：你输了！
-            }
-            显示分数列表
-            break;
-        } else if (t == drop) {
-            显示：Name[m.GetPlayer()]掉线，游戏结束
-            break;
-        } else if (t == error) {
-            显示：程序错误，游戏结束（错误信息：m.GetExtension()）
-            break;
-        } else if (t == print) {
-            显示m.GetExtension()
-        } else if (t == think) {
-            在第m.GetPlayer()个玩家上画个省略号之类的（可以显示倒计时）
-        } else if (t == deal) {
-            播放发牌动画，显示m.GetCards()，显示每人张数
-        } else if (t == auction) {
-            if (m.IsRequest) {
-                出现不叫、m.GetPar(1)至m.GetPar(2)叫分按钮
-                OnPress {
-                    m.SetPar(按钮值);
-                    SendGameMsg(Package(Header(true, rec_server)), m.String());
-                }
-                倒计时m.GetTime()秒，超时则发送0（不叫）
-            } else {
-                第m.GetPlayer()个玩家发出气泡“x分”
-            }
-        } else if (t == changbet) {
-            更新底分
-        } else if (t == setlandlord) {
-            m.GetPlayer()获得地主标识
-            显示底牌，更新地主牌数
-        } else if (t == play) {
-            if (m.IsRequest) {
-                CardSet s = CardSet();
-                OnPress card: s.Insert(点的牌) 或 s.Delete(选的牌)
-                OnPress botton: m.SetCards(s); SendGameMsg(...);
-                倒计时m.GetTime()秒，超时则发送空集（pass）
-            } else {
-                显示某人出了某牌
-            }
-        } else if (t == deny) {
-            显示：非法出牌
-            （倒计时不停）
-        } else if (t == bomb) {
-            播放炸弹动画
-        } else if (t == spring) {
-            播放春天动画
-        }
-    }
-}
-*/
+template <int np> class MsgSeries: public array<Message, np> {
+public:
+    MsgSeries(const Message &m = Message()); // returns a message series duplicating m
+    void SetPar(int k, array<int, np> a); // a[i] for the ith message
+    void SetPar(int k, ci<np> v); // v goes in the opposite direction from the message index
+    void SetPars(int k, array<int, np> a); // sets the first np parameters from k with left rotation
+    void SetPlayer(ci<np> v);
+    void SetCards(const array<CardSet, np> &a);
+};
+
+#endif
