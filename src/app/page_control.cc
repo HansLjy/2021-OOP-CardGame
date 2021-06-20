@@ -1,5 +1,7 @@
 #include "page_control.h"
 #include "page_control_event.h"
+#include "window.h"
+#include "process.h"
 
 enum {
 	kMainMenu = 0,
@@ -95,6 +97,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 		case joinID_confirm:
 			game_pending->StartPending();
 			ChangeSelection(kGamePending);
+			Pending();
 			break;
 		case overID_back:
 			ChangeSelection(kMainMenu);
@@ -104,4 +107,20 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 	}
 
+}
+
+#include "Client.h"
+
+void PageController::Pending() {
+	Client client;
+	client.JoinRoom(string(app_status.user_name), app_status.IP_address);
+}
+
+unsigned WINAPI GameThread() {
+
+	Client client;
+
+	while (true) {
+		
+	}
 }

@@ -402,6 +402,10 @@ void GameInterface::Render() {
 	count_down = 60;
 	timer->Start(1000);
 
+	for (int i = 0; i < 4; i++) {
+		last_round[i]->SetDeck(last_round_card[i]);
+	}
+
 	deck[0]->SetDeck(my_cards);
 	for (int i = 1; i < 4; i++) {
 		CardSet card_set(num_cards[i]);
@@ -430,5 +434,5 @@ void GameInterface::OnTimer(wxTimerEvent &event) {
 	std::cout << count_down << std::endl;
 	static char time_string[10];
 	itoa(count_down, time_string, 10);
-	timer_label->SetLabel(wxString("Time left in this round: ") + wxString(time_string) + wxString("s"));
+	timer_label->SetLabel(wxT("回合剩余时间：") + wxString(time_string) + wxString("s"));
 }

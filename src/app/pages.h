@@ -146,9 +146,10 @@ public:
 };
 
 class GameInterface : public wxPanel {
-	int num_cards[4];	// Number of cards
-	CardSet my_cards;	// My cards
-	CardSet last_rount[4];
+	int num_cards[4];		// 牌的数量
+	int ratio;				// 倍数
+	CardSet my_cards;		// 我的牌
+	CardSet last_round_card[4];
 
 public:
 	GameInterface () = delete;
