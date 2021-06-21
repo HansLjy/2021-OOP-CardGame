@@ -97,7 +97,12 @@ void PageController::OnButton(wxCommandEvent& event) {
 		case joinID_confirm:
 			game_pending->StartPending();
 			ChangeSelection(kGamePending);
-			Pending();
+			if (Pending()) {
+				ChangeSelection(kGameInterface);
+			} else {
+				wxMessageBox(wxT("连接超时！"));
+				ChangeSelection(kMainMenu);
+			}
 			break;
 		case overID_back:
 			ChangeSelection(kMainMenu);
@@ -110,17 +115,61 @@ void PageController::OnButton(wxCommandEvent& event) {
 }
 
 #include "Client.h"
+#include "message.h"
 
-void PageController::Pending() {
+bool PageController::Pending() {
 	Client client;
-	client.JoinRoom(string(app_status.user_name), app_status.IP_address);
+	int game_type;
+	auto user_name = client.JoinRoom(app_status.IP_address, string(app_status.user_name), game_type);
+	if (user_name.size() == 0) { // 连接超时，异常
+		// TODO
+		return false;
+	}
+	// 设置用户名
+	for (int i = 0; i < 4; i++) {
+		game_interface->user_name[i] = wxString(user_name[i]);
+	}
+	return true;
 }
 
-unsigned WINAPI GameThread() {
-
+unsigned WINAPI GameThread(GameInterface& game_interface) {
 	Client client;
-
 	while (true) {
-		
+		bool end_loop = false;
+		auto package = client.CollectGameMsg();
+		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
+			wxMessageBox(wxT("断开连接！"));
+			break;
+		}
+		auto message = Message(package.GetData());
+		switch (message.GetType()) {
+			case m_end:
+				end_loop = true;
+				break;
+			case m_playout:
+				if (message.IsRequest()) {
+					// 需要出牌
+					game_interface.StartCountDown(message.GetTime());
+				} else {
+					game_interface.num_cards[message.GetPlayer()] = message.GetPar();
+					game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
+				}
+				break;
+			case m_deny:
+				wxMessageBox(wxT("请好好出牌！"));
+				break;
+			case m_changestake:
+				game_interface.stake = message.GetPar();
+				break;
+			case m_setlandlord:
+				game_interface.num_cards[message.GetPlayer()] = message.GetPar();
+				game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
+				break;
+			case 
+		}
+		if (end_loop) {
+			break;
+		}
+		game_interface.Render();
 	}
 }

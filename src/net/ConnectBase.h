@@ -7,8 +7,8 @@
 #include <process.h>
 #include <iostream>
 
-//#include "package.h"
-class Package;
+#include "package.h"
+// class Package;
 using std::vector;
 using std::string;
 #define rec_server (-1)

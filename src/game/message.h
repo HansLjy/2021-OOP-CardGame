@@ -6,7 +6,7 @@
 #include <string>
 #include <array>
 
-// #include "clockint.h"
+#include "clockint.h"
 #include "card.h"
 
 using namespace std;
@@ -33,7 +33,7 @@ class Message {
     string scard;
     string ext;
 public:
-    Message(MsgType t = m_empty, bool b = false, const CardSet &s = CardSet()); // returns a message with unspecified parameters
+    Message(MsgType t = m_empty, bool b = false); // returns a message with unspecified parameters
     Message(const string &s); // decodes s to a message
     MsgType GetType() const; // returns the type
     bool IsRequest() const; // returns whether the message requires a reply

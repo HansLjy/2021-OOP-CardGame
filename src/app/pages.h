@@ -146,12 +146,18 @@ public:
 };
 
 class GameInterface : public wxPanel {
-	int num_cards[4];		// 牌的数量
-	int ratio;				// 倍数
-	CardSet my_cards;		// 我的牌
-	CardSet last_round_card[4];
-
 public:
+
+	// Status
+	bool playable;				// 当前是否可以出牌
+	int num_cards[4];			// 牌的数量
+	int stake;					// 倍数
+
+	CardSet my_cards;			// 我的牌
+	CardSet last_round_card[4];	// 上一轮的牌
+	wxString user_name[4];		// 用户名
+	wxString button_text[2];	// 按钮上显示的字
+
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
@@ -167,6 +173,8 @@ public:
 	DeckPanel		*deck[4];
 	DeckPanel		*last_round[4];
 	wxPanel			*midpan;
+
+	void StartCountDown(int n);	// 从 n 开始倒计时
 
 	void OnDeal(wxCommandEvent &event);
 	void OnPass(wxCommandEvent &event);

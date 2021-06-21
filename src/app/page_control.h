@@ -46,5 +46,5 @@ public:
 	void OnQuit(wxCommandEvent& event);
 	void OnButton(wxCommandEvent& event);
 
-	void Pending();
+	bool Pending();
 };

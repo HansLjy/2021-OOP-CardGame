@@ -426,6 +426,13 @@ void GameInterface::OnPass(wxCommandEvent &event) {
 	std::cerr << "Pass!" << std::endl;
 }
 
+void GameInterface::StartCountDown(int n) {
+	count_down = n;
+	if (timer->IsRunning() == false) {
+		timer->Start();
+	}
+}
+
 void GameInterface::OnTimer(wxTimerEvent &event) {
 	if (count_down < 0) {
 		timer->Stop();
