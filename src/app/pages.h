@@ -148,29 +148,34 @@ public:
 class GameInterface : public wxPanel {
 public:
 	// Status
-	int num_players;			// 玩家的数量
-	int num_cards[4];			// 牌的数量
-	int stake;					// 倍数
-	int count_down;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
-	bool show_count_down;		// 是否显示倒计时
-	bool is_auction;			// 是否是叫分，叫分时候右下角显示四个按钮
-	bool is_my_turn;			// 是否轮到我行动，轮到我行动的时候
+	int num_players = 3;				// 玩家的数量
+	int num_cards[4] = {1, 2, 3, 4};	// 牌的数量
+	int stake = 10;						// 倍数
+	int count_down = 60;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
+	int smallest_bid = 1;					// 最小初始分
+	int largest_bid = 2;					// 最大初始分
+
+	bool show_stake = 1;					// 是否显示倍数
+	bool show_count_down = 1;				// 是否显示倒计时
+	bool is_auction = 1;			// 是否是叫分，叫分时候右下角显示四个按钮
+	bool is_my_turn = 0;			// 是否轮到我行动，轮到我行动的时候
 
 	CardSet my_cards;			// 我的牌
 	CardSet last_round_card[4];	// 上一轮的牌
 	string user_name[4];		// 用户名
-	string info;				// 中间显示的信息，如果显示
+	string info;
 
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
 	wxTimer			*timer;
 	MyLabel			*timer_label;
-	MyLabel			*game_info;
-	MyLabel			*info_label[4];
+	MyLabel			*center_info;
+	MyLabel			*user_info[4];
 	wxWindow		*p_parent;
 	MyButton		*deal;
 	MyButton		*pass;
+	MyButton		*call_auction[4];
 	wxClientDC		dc;
 	DeckPanel		*deck[4];
 	DeckPanel		*last_round[4];

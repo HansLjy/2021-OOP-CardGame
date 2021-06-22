@@ -10,9 +10,10 @@ include_directories(src/app)
 
 project(PokeGame)
 aux_source_directory(src/app APP)
-aux_source_directory(src/game GAME)
+# aux_source_directory(src/game GAME)
 aux_source_directory(src/net NET)
-add_executable(main main.cc ${APP} ${GAME} ${NET})
+add_executable(main main.cc ${APP} ${NET})
+# add_executable(main main.cc ${APP} ${GAME} ${NET})
 
 set(wxWidgets_ROOT_DIR ./wxWidgets)
 set(wxWidgets_CONFIGURATION msw)

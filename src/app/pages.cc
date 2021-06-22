@@ -339,50 +339,41 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[1] = new DeckPanel(this, kFaceDown, kLeft);
 	deck[2] = new DeckPanel(this, kFaceDown, kUp);
 	deck[3] = new DeckPanel(this, kFaceDown, kRight);
-	deck[0]->SetDeck(CardSet(10));
-	deck[1]->SetDeck(CardSet(10));
-	deck[2]->SetDeck(CardSet(10));
-	deck[3]->SetDeck(CardSet(10));
 
-	info_label[0] = new MyLabel(deck[0], wxID_ANY, wxT("Player 0"));
-	info_label[1] = new MyLabel(deck[1], wxID_ANY, wxT("Player 0"));
-	info_label[2] = new MyLabel(deck[2], wxID_ANY, wxT("Player 0"));
-	info_label[3] = new MyLabel(deck[3], wxID_ANY, wxT("Player 0"));
+	user_info[0] = new MyLabel(deck[0], wxID_ANY, wxT("Player 0"));
+	user_info[1] = new MyLabel(deck[1], wxID_ANY, wxT("Player 1"));
+	user_info[2] = new MyLabel(deck[2], wxID_ANY, wxT("Player 2"));
+	user_info[3] = new MyLabel(deck[3], wxID_ANY, wxT("Player 3"));
 
 	midpan = new wxPanel(this);
-	deal = new MyButton(midpan, gameID_deal, "deal");
-	pass = new MyButton(midpan, gameID_pass, "pass");
-	timer = new wxTimer(this, gameID_count_down);
+	deal = new MyButton(this, gameID_deal, wxT("出牌"));
+	pass = new MyButton(this, gameID_pass, wxT("跳过"));
+	call_auction[0] = new MyButton(this, gameID_auction0, wxT("不叫"));
+	call_auction[1] = new MyButton(this, gameID_auction1, wxT("叫1分"));
+	call_auction[2] = new MyButton(this, gameID_auction2, wxT("叫2分"));
+	call_auction[3] = new MyButton(this, gameID_auction3, wxT("叫3分"));
 	timer_label = new MyLabel(midpan, wxID_ANY, "Time left:");
+	center_info = new MyLabel(midpan, wxID_ANY, wxT("测试信息"));
+	timer = new wxTimer(this, gameID_count_down);
 
 	last_round[0] = new DeckPanel(midpan, kFaceUp, kCenter);
-	last_round[1] = new DeckPanel(midpan, kFaceUp, kRight);
+	last_round[1] = new DeckPanel(midpan, kFaceUp, kCenter);
 	last_round[2] = new DeckPanel(midpan, kFaceUp, kCenter);
-	last_round[3] = new DeckPanel(midpan, kFaceUp, kLeft);
+	last_round[3] = new DeckPanel(midpan, kFaceUp, kCenter);
 	
-	last_round[0]->SetDeck(CardSet(10));
-	last_round[1]->SetDeck(CardSet(10));
-	last_round[2]->SetDeck(CardSet(10));
-	last_round[3]->SetDeck(CardSet(10));
-
 	wxBoxSizer *mid_vbox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *mid_hbox = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *mid_hbox_inner = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer *mid_vbox_inner = new wxBoxSizer(wxVERTICAL);
-
 
 	mid_hbox->Add(last_round[3], 1, wxEXPAND);
 	mid_hbox->Add(mid_vbox, 2, wxEXPAND);
 	mid_hbox->Add(last_round[1], 1, wxEXPAND);
 
 	mid_vbox->Add(last_round[2], 1, wxEXPAND);
-	mid_vbox->Add(mid_vbox_inner, 1, wxEXPAND);
+	mid_vbox->Add(timer_label, 1, wxALIGN_CENTER);
+	mid_vbox->Add(center_info, 1, wxALIGN_CENTER);
 	mid_vbox->Add(last_round[0], 1, wxEXPAND);
 
-	mid_vbox_inner->Add(timer_label, 1, wxEXPAND);
-	mid_vbox_inner->Add(mid_hbox_inner, 1, wxEXPAND);
-	mid_hbox_inner->Add(deal, 0, wxRIGHT, 10);
-	mid_hbox_inner->Add(pass, 0, wxRIGHT, 10);
 	midpan->SetSizer(mid_hbox);
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
@@ -393,24 +384,80 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
 	vbox->Add(deck[2], 2, wxEXPAND);
 	vbox->Add(hbox, 7, wxEXPAND);
-	vbox->Add(deck[0], 2, wxEXPAND);
+
+	wxBoxSizer *down_box = new wxBoxSizer(wxHORIZONTAL);
+	vbox->Add(down_box, 2, wxEXPAND);
+	down_box->Add(deck[0], 4, wxEXPAND);
+
+	wxBoxSizer *button_box = new wxBoxSizer(wxVERTICAL);
+	down_box->Add(button_box, 1, wxEXPAND);
+	button_box->Add(deal, 1, wxALL, 5);
+	button_box->Add(pass, 1, wxALL, 5);
+	for (int i = 0; i < 4; i++) {
+		button_box->Add(call_auction[i], 1, wxALL, 5);
+	}
+	deal->Hide();
+	pass->Hide();
+	for (int i = 0; i < 4; i++) {
+		call_auction[i]->Hide();
+	}
 
 	SetSizer(vbox);
 }
 
 void GameInterface::Render() {
-	count_down = 60;
-	timer->Start(1000);
-
-	for (int i = 0; i < 4; i++) {
-		last_round[i]->SetDeck(last_round_card[i]);
-	}
 
 	deck[0]->SetDeck(my_cards);
-	for (int i = 1; i < 4; i++) {
-		CardSet card_set(num_cards[i]);
-		deck[i]->SetDeck(CardSet(num_cards[i]));
+	last_round[0]->SetDeck(last_round_card[0]);
+	deck[1]->SetDeck(CardSet(num_cards[1]));
+	last_round[1]->SetDeck(last_round_card[1]);
+	if (num_players == 3) {
+		deck[2]->SetDeck(CardSet(0));
+		last_round[2]->SetDeck(CardSet(0));
+		deck[3]->SetDeck(CardSet(num_cards[2]));
+		last_round[3]->SetDeck(last_round_card[2]);
+	} else if (num_players == 4) {
+		deck[2]->SetDeck(CardSet(num_cards[2]));
+		last_round[2]->SetDeck(last_round_card[2]);
+		deck[3]->SetDeck(CardSet(num_cards[3]));
+		last_round[3]->SetDeck(last_round_card[3]);
 	}
+
+	static char number[20];
+	itoa(stake, number, 10);
+	center_info->SetLabelText(wxT("当前倍数：") + wxString(number));
+
+	if(show_count_down) {
+		timer_label->Show();
+	} else {
+		timer_label->Hide();
+	}
+
+	if (show_stake) {
+		center_info->Show();
+	} else {
+		center_info->Hide();
+	}
+
+	if (is_my_turn) {
+		deal->Show();
+		pass->Show();
+	} else {
+		deal->Hide();
+		pass->Hide();
+	}
+	
+	for (int i = 0; i < 4; i++) {
+		call_auction[i]->Hide();
+	}
+
+	if (is_auction) {
+		for (int i = smallest_bid; i <= largest_bid; i++) {
+			call_auction[i]->Show();
+		}
+	}
+
+	this->Layout();
 
 	for (int i = 0; i < 4; i++) {
 		deck[i]->Render();
@@ -429,7 +476,7 @@ void GameInterface::OnPass(wxCommandEvent &event) {
 void GameInterface::StartCountDown(int n) {
 	count_down = n;
 	if (timer->IsRunning() == false) {
-		timer->Start();
+		timer->Start(1000);
 	}
 }
 

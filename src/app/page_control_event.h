@@ -38,7 +38,11 @@ enum {
 enum {
 	gameID_deal = 6000,
 	gameID_pass,
-	gameID_count_down
+	gameID_count_down,
+	gameID_auction0,
+	gameID_auction1,
+	gameID_auction2,
+	gameID_auction3
 };
 
 enum {

@@ -126,7 +126,7 @@ void DeckPanel::Render() {
 			break;
 		case kCenter:
 			x = width / 2 - (deck.cards.GetNumOfCards() * k_delta_x + k_card_width) / 2;
-			y = height / 2 - k_card_height;
+			y = height / 2 - k_card_height / 2;
 			break;		
 	}
 	// Draw an invisible rectangle to cover the region
