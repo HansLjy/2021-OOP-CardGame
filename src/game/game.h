@@ -9,7 +9,7 @@
 #include "rule.h"
 #include "message.h"
 #include "package.h"
-#include "port.h"
+#include "Server.h"
 #include "disconnection.h"
 
 const int t_bid = 10, t_playout = 20;
@@ -17,10 +17,11 @@ const int peasant = 0, landlord = 1;
 
 using namespace std;
 
+
 template <int np> class CardGame {
 protected:
     const array<bool, np> ishuman; // whether each player is a human, with the index starting from the room creator and going counterclockwise
-    const Server &server; // through which messages are transmitted
+    Server &server; // through which messages are transmitted
     const CardSet ccards; // complete card set used
     array<int, np> score;
     void notify(ci<np> k, const Message &m) const; // notify the kth player of m
@@ -33,7 +34,7 @@ protected:
     void dispscore() const; // broadcasts everyone's score
     virtual void play() = 0;
 public:
-    CardGame(array<bool, np> ish, const Server &s, const CardSet &c); // returns a card game with "is human" list ish and server s
+    CardGame(array<bool, np> ish, Server &s, const CardSet &c); // returns a card game with "is human" list ish and server s
     void Play();
 };
 
@@ -51,7 +52,7 @@ protected:
     void playout(ci<np> k);
     virtual void play() = 0;
 public:
-    WinnerBasedGame(array<bool, np> ish, const Server &s, const CardSet &c, const Rule r);
+    WinnerBasedGame(array<bool, np> ish, Server &s, const CardSet &c, const Rule r);
 };
 
 class DouDizhuGame: public WinnerBasedGame<3> {
@@ -59,7 +60,7 @@ class DouDizhuGame: public WinnerBasedGame<3> {
     int bid_robot(ci<3> k);
     void play();
 public:
-    DouDizhuGame(array<bool, 3> ish, const Server &s);
+    DouDizhuGame(array<bool, 3> ish, Server &s);
 };
 
 class SirenDouDizhuGame: public WinnerBasedGame<4> {
@@ -67,14 +68,14 @@ class SirenDouDizhuGame: public WinnerBasedGame<4> {
     int bid_robot(ci<4> k);
     void play();
 public:
-    SirenDouDizhuGame(array<bool, 4> ish, const Server &s);
+    SirenDouDizhuGame(array<bool, 4> ish, Server &s);
 };
 
 class ShuangkouGame: public WinnerBasedGame<4> {
     int nleft; // number of players who still have cards
     void play();
 public:
-    ShuangkouGame(array<bool, 4> ish, const Server &s);
+    ShuangkouGame(array<bool, 4> ish, Server &s);
 };
 
 #endif

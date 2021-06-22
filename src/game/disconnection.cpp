@@ -6,6 +6,9 @@ template <int np> ci<np> Disconn<np>::GetIndex() const {
     return index;
 }
 
+template class Disconn<3>;
+template class Disconn<4>;
+
 // test code, expected 1
 
 // #include <iostream>

@@ -16,3 +16,6 @@ template <int np> CardSet WinnerBasedGame<np>::playout_robot(ci<np> k) {}
 int DouDizhuGame::bid_robot(ci<3> k) {}
 
 int SirenDouDizhuGame::bid_robot(ci<4> k) {}
+
+template class WinnerBasedGame<3>;
+template class WinnerBasedGame<4>;

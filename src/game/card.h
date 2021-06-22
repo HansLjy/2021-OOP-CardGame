@@ -54,6 +54,10 @@ public:
     CardSet Take(int k = 1); // randomly takes and subtracts k cards from the set
     string String() const; // encodes the set to a string
     operator bool() const; // returns whether the set is empty
+    CardSet operator+(const Card &s) const; // returns the sum of the set and c
+    CardSet operator+(const CardSet &s) const; // returns the sum of the set and s
+    CardSet operator-(const Card &c) const; // returns the difference of the set and c
+    CardSet operator-(const CardSet &s) const; // returns the difference of the set and s
     bool operator==(const CardSet &s) const; // returns whether the set is exactly the same as s
     bool operator!=(const CardSet &s) const; // returns whether the set is different from s
 };

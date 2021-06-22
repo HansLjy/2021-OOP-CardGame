@@ -15,6 +15,8 @@ MainFrame::MainFrame(const wxString& title)
 	// Add Page Controller
 	m_controller = new PageController(this);
 
+	this->SetMinSize(k_default_size);
+
 	// Change background color
 	// wxColor bg_color;
 	// bg_color.Set(wxT("#ffffff"));

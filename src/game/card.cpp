@@ -162,6 +162,26 @@ string CardSet::String() const {
 CardSet::operator bool() const {
     return (bool)noc;
 }
+CardSet CardSet::operator+(const Card &c) const {
+    CardSet t = *this;
+    t.Insert(c);
+    return t;
+}
+CardSet CardSet::operator+(const CardSet &s) const {
+    CardSet t = *this;
+    t.Insert(s);
+    return t;
+}
+CardSet CardSet::operator-(const Card &c) const {
+    CardSet t = *this;
+    t.Delete(c);
+    return t;
+}
+CardSet CardSet::operator-(const CardSet &s) const {
+    CardSet t = *this;
+    t.Delete(s);
+    return t;
+}
 bool CardSet::operator==(const CardSet &s) const {
     if (noc != s.noc) {
         return false;
@@ -212,6 +232,7 @@ bool CardSet::operator!=(const CardSet &s) const {
 //     s1.Delete(Card(39));
 //     s2.Delete(s1);
 //     cout << (s2.GetNum(53) == 1 && s2.GetNum(diamond, 2) == 0 && s2.GetNum(39) == 2);
+//     cout << ((s0 + s1).GetNum(15) == 3 && (s2 - Card(39)).GetNum(39) == 1);
 //     s2 = CardSet(s2.String());
 //     cout << (s2.GetNum(53) == 1 && s2.GetNum(diamond, 2) == 0 && s2.GetNum(39) == 2 && s2.GetNumOfCards() == 54);
 //     cout << (s0 == s0 && !(s0 != s0) && s0 != s1 && !(s0 == s1)) << endl;

@@ -7,9 +7,9 @@
 
 using namespace std;
 
-Message::Message(MsgType t):
+Message::Message(MsgType t, bool b):
     type(t),
-    isr(false),
+    isr(b),
     spar(string(8, 0)),
     scard(string(54, 0)),
     ext(string())
@@ -94,7 +94,7 @@ template <int np> void MsgSeries<np>::SetPar(int k, ci<np> v) {
 template <int np> void MsgSeries<np>::SetPars(int k, array<int, np> a) {
     for (int i = 0; i < np; i++) {
         ci<np> i0 = i;
-        for (int j = k; j < k + np; j++, i0--) {
+        for (int j = k; j < k + np; j++, i0++) {
             this->at(i).SetPar(j, a[i0]);
         }
     }
@@ -107,6 +107,9 @@ template <int np> void MsgSeries<np>::SetCards(const array<CardSet, np> &a) {
         this->at(i).SetCards(a[i]);
     }
 }
+
+template class MsgSeries<3>;
+template class MsgSeries<4>;
 
 // test code, expected all 1's
 
@@ -151,6 +154,17 @@ template <int np> void MsgSeries<np>::SetCards(const array<CardSet, np> &a) {
 //         ms[1].GetPar() == 1 &&
 //         ms[2].GetPar() == 0 &&
 //         ms[3].GetPar() == 3
+//     );
+//     ms.SetPars(0, array<int, 4>{1, 2, 3, 4});
+//     cout << (
+//         ms[0].GetPar() == 1 &&
+//         ms[0].GetPar(1) == 2 &&
+//         ms[0].GetPar(2) == 3 &&
+//         ms[0].GetPar(3) == 4 &&
+//         ms[1].GetPar() == 2 &&
+//         ms[1].GetPar(1) == 3 &&
+//         ms[1].GetPar(2) == 4 &&
+//         ms[1].GetPar(3) == 1
 //     );
 //     ms.SetPlayer(ci<4>(0));
 //     cout << (

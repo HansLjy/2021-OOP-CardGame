@@ -54,6 +54,9 @@ template <int m> ci<m> ci<m>::operator-(int x) const {
     return *this + -x;
 }
 
+template class ci<3>;
+template class ci<4>;
+
 // test code, expected all 1's
 
 // #include <iostream>
