@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#define i_server -1
+const int i_server = -1;
 
 class Header {
     bool suc;

@@ -1,7 +1,7 @@
 #include "page_control.h"
 #include "page_control_event.h"
-#include "window.h"
-#include "process.h"
+#include <Windows.h>
+#include <process.h>
 
 enum {
 	kMainMenu = 0,
@@ -95,6 +95,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameMenu);
 			break;
 		case joinID_confirm:
+			/* 
 			game_pending->StartPending();
 			ChangeSelection(kGamePending);
 			if (Pending()) {
@@ -103,6 +104,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 				wxMessageBox(wxT("连接超时！"));
 				ChangeSelection(kMainMenu);
 			}
+			*/
 			break;
 		case overID_back:
 			ChangeSelection(kMainMenu);
@@ -117,6 +119,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 #include "Client.h"
 #include "message.h"
 
+/*
 bool PageController::Pending() {
 	Client client;
 	int game_type;
@@ -131,7 +134,9 @@ bool PageController::Pending() {
 	}
 	return true;
 }
+*/
 
+/*
 unsigned WINAPI GameThread(GameInterface& game_interface) {
 	Client client;
 	while (true) {
@@ -165,7 +170,6 @@ unsigned WINAPI GameThread(GameInterface& game_interface) {
 				game_interface.num_cards[message.GetPlayer()] = message.GetPar();
 				game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
 				break;
-			case 
 		}
 		if (end_loop) {
 			break;
@@ -173,3 +177,4 @@ unsigned WINAPI GameThread(GameInterface& game_interface) {
 		game_interface.Render();
 	}
 }
+*/

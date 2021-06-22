@@ -147,21 +147,23 @@ public:
 
 class GameInterface : public wxPanel {
 public:
-
 	// Status
-	bool playable;				// 当前是否可以出牌
+	int num_players;			// 玩家的数量
 	int num_cards[4];			// 牌的数量
 	int stake;					// 倍数
+	int count_down;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
+	bool show_count_down;		// 是否显示倒计时
+	bool is_auction;			// 是否是叫分，叫分时候右下角显示四个按钮
+	bool is_my_turn;			// 是否轮到我行动，轮到我行动的时候
 
 	CardSet my_cards;			// 我的牌
 	CardSet last_round_card[4];	// 上一轮的牌
-	wxString user_name[4];		// 用户名
-	wxString button_text[2];	// 按钮上显示的字
+	string user_name[4];		// 用户名
+	string info;				// 中间显示的信息，如果显示
 
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
-	int 			count_down;
 	wxTimer			*timer;
 	MyLabel			*timer_label;
 	MyLabel			*game_info;
