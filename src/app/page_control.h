@@ -1,6 +1,8 @@
 #pragma once
 #include "wx/simplebook.h"
 #include "pages.h"
+#include "Server.h"
+#include "Client.h"
 
 enum GUISingleOrMulti {
 	kSingle = 0,
@@ -8,8 +10,8 @@ enum GUISingleOrMulti {
 };
 
 enum GUIGameType {
-	kPoke = 0,
-	kLandlord
+	kLandlord3 = 0,
+	kLandlord4
 };
 
 enum GUIJoinOrCreate {
@@ -24,13 +26,15 @@ struct AppStatus {
 	wxString user_name;
 	wxString IP_address;
 	wxString passwd;
-	wxString winner = "Hans & Stella";
+	wxString winner;
 	int player_number;
 };
 
 class PageController : public wxSimplebook {
 public:
 	AppStatus app_status;
+	Server server;
+	Client client;
 
 	PageController () = delete;
 	PageController (wxWindow* p_parent);
@@ -47,4 +51,5 @@ public:
 	void OnButton(wxCommandEvent& event);
 
 	bool Pending();
+	bool CreateGame();
 };

@@ -59,6 +59,7 @@ void PageController::OnQuit(wxCommandEvent& event) {
 	event.Skip();
 }
 
+// 菜单系统
 void PageController::OnButton(wxCommandEvent& event) {
 	switch (event.GetId()) {
 		case mainID_play_single:
@@ -69,7 +70,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case singleID_confirm:
 			ChangeSelection(kGameInterface);
-			game_interface->Render();
+			game_interface->StartGame();
 			break;
 		case singleID_back:
 			ChangeSelection(kMainMenu);
@@ -81,9 +82,14 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameCreateSetting);
 			break;
 		case createID_confirm:
-			// TODO
-			game_over->SetWinner();
-			ChangeSelection(kGameOver);
+			game_pending->StartPending();
+			ChangeSelection(kGamePending);
+			if (CreateGame()) {
+				game_interface->StartGame();
+				ChangeSelection(kGameInterface);
+			} else {
+				wxMessageBox(wxT("异常！无法创建房间"));
+			}
 			break;
 		case createID_back:
 			ChangeSelection(kMultiGameMenu);
@@ -95,16 +101,15 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameMenu);
 			break;
 		case joinID_confirm:
-			/* 
 			game_pending->StartPending();
 			ChangeSelection(kGamePending);
 			if (Pending()) {
+				game_interface->StartGame();
 				ChangeSelection(kGameInterface);
 			} else {
 				wxMessageBox(wxT("连接超时！"));
 				ChangeSelection(kMainMenu);
 			}
-			*/
 			break;
 		case overID_back:
 			ChangeSelection(kMainMenu);
@@ -116,12 +121,11 @@ void PageController::OnButton(wxCommandEvent& event) {
 
 }
 
+#include "Server.h"
 #include "Client.h"
 #include "message.h"
 
-/*
 bool PageController::Pending() {
-	Client client;
 	int game_type;
 	auto user_name = client.JoinRoom(app_status.IP_address, string(app_status.user_name), game_type);
 	if (user_name.size() == 0) { // 连接超时，异常
@@ -130,51 +134,18 @@ bool PageController::Pending() {
 	}
 	// 设置用户名
 	for (int i = 0; i < 4; i++) {
-		game_interface->user_name[i] = wxString(user_name[i]);
+		game_interface->user_name[i] = user_name[i];
 	}
 	return true;
 }
-*/
 
-/*
-unsigned WINAPI GameThread(GameInterface& game_interface) {
-	Client client;
-	while (true) {
-		bool end_loop = false;
-		auto package = client.CollectGameMsg();
-		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
-			wxMessageBox(wxT("断开连接！"));
+bool PageController::CreateGame() {
+	switch (app_status.game_type) {
+		case kLandlord3:
+			return server.OpenRoom(sanrendoudizhu, app_status.player_number, 3 - app_status.player_number) == 0;
 			break;
-		}
-		auto message = Message(package.GetData());
-		switch (message.GetType()) {
-			case m_end:
-				end_loop = true;
-				break;
-			case m_playout:
-				if (message.IsRequest()) {
-					// 需要出牌
-					game_interface.StartCountDown(message.GetTime());
-				} else {
-					game_interface.num_cards[message.GetPlayer()] = message.GetPar();
-					game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
-				}
-				break;
-			case m_deny:
-				wxMessageBox(wxT("请好好出牌！"));
-				break;
-			case m_changestake:
-				game_interface.stake = message.GetPar();
-				break;
-			case m_setlandlord:
-				game_interface.num_cards[message.GetPlayer()] = message.GetPar();
-				game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
-				break;
-		}
-		if (end_loop) {
+		case kLandlord4:
+			return server.OpenRoom(sirendoudizhu, app_status.player_number, 4 - app_status.player_number) == 0;
 			break;
-		}
-		game_interface.Render();
 	}
 }
-*/

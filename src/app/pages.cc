@@ -110,7 +110,7 @@ void SingleGameMenu::OnConfirm(wxCommandEvent &event) {
 	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
 	control->app_status.player_number = user_number_input->GetValue();
 	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
-	control->app_status.game_type = game_select->GetSelection() == 0 ? kPoke : kLandlord;
+	control->app_status.game_type = game_select->GetSelection() == 0 ? kLandlord3 : kLandlord4;
 	std::cerr << "Click confirm" << std::endl;
 	event.Skip();
 }
@@ -234,8 +234,8 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	confirm = new MyButton(this, createID_confirm, wxT("Confirm"));
 	go_back = new MyButton(this, createID_back, wxT("Return"));
 
-	game_select->Insert(wxT("争上游"), 0);
-	game_select->Insert(wxT("斗地主"), 1);
+	game_select->Insert(wxT("三人斗地主"), 0);
+	game_select->Insert(wxT("四人斗地主"), 1);
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
@@ -258,7 +258,7 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
 	get_controller(control);
 	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
-	control->app_status.game_type = game_select->GetSelection() == 0 ? kPoke : kLandlord;
+	control->app_status.game_type = game_select->GetSelection() == 0 ? kLandlord3 : kLandlord4;
 	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
 	control->app_status.user_name = user_name_input->GetLineText(0);
 	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
@@ -340,10 +340,10 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	deck[2] = new DeckPanel(this, kFaceDown, kUp);
 	deck[3] = new DeckPanel(this, kFaceDown, kRight);
 
-	user_info[0] = new MyLabel(deck[0], wxID_ANY, wxT("Player 0"));
-	user_info[1] = new MyLabel(deck[1], wxID_ANY, wxT("Player 1"));
-	user_info[2] = new MyLabel(deck[2], wxID_ANY, wxT("Player 2"));
-	user_info[3] = new MyLabel(deck[3], wxID_ANY, wxT("Player 3"));
+	user_info[0] = new MyLabel(this, wxID_ANY, wxT("玩家0"));
+	user_info[1] = new MyLabel(this, wxID_ANY, wxT("玩家1"));
+	user_info[2] = new MyLabel(this, wxID_ANY, wxT("玩家2"));
+	user_info[3] = new MyLabel(this, wxID_ANY, wxT("玩家3"));
 
 	midpan = new wxPanel(this);
 	deal = new MyButton(this, gameID_deal, wxT("出牌"));
@@ -352,8 +352,8 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	call_auction[1] = new MyButton(this, gameID_auction1, wxT("叫1分"));
 	call_auction[2] = new MyButton(this, gameID_auction2, wxT("叫2分"));
 	call_auction[3] = new MyButton(this, gameID_auction3, wxT("叫3分"));
-	timer_label = new MyLabel(midpan, wxID_ANY, "Time left:");
-	center_info = new MyLabel(midpan, wxID_ANY, wxT("测试信息"));
+	timer_label = new MyLabel(midpan, wxID_ANY, wxT("回合剩余时间："));
+	center_info = new MyLabel(midpan, wxID_ANY, wxT("测试信息："));
 	timer = new wxTimer(this, gameID_count_down);
 
 	last_round[0] = new DeckPanel(midpan, kFaceUp, kCenter);
@@ -376,23 +376,38 @@ GameInterface::GameInterface(wxWindow *p_parent)
 
 	midpan->SetSizer(mid_hbox);
 
-	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
-	hbox->Add(deck[1], 2, wxEXPAND);
-	hbox->Add(midpan, 7, wxEXPAND);
-	hbox->Add(deck[3], 2, wxEXPAND);
+	wxBoxSizer *up_box = new wxBoxSizer(wxHORIZONTAL);
+	up_box->Add(user_info[2], 2, wxALIGN_TOP);
+	up_box->Add(deck[2], 8, wxALIGN_CENTER);
 
-	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
-	vbox->Add(deck[2], 2, wxEXPAND);
-	vbox->Add(hbox, 7, wxEXPAND);
+	wxBoxSizer *left_box = new wxBoxSizer(wxVERTICAL);
+	left_box->Add(user_info[3], 2, wxALIGN_LEFT);
+	left_box->Add(deck[3], 8, wxALIGN_CENTER);
+
+	wxBoxSizer *right_box = new wxBoxSizer(wxVERTICAL);
+	right_box->Add(user_info[1], 2, wxALIGN_RIGHT);
+	right_box->Add(deck[1], 8, wxALIGN_CENTER);
+
+	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
+	hbox->Add(left_box, 2, wxEXPAND);
+	hbox->Add(midpan, 6, wxEXPAND);
+	hbox->Add(right_box, 2, wxEXPAND);
 
 	wxBoxSizer *down_box = new wxBoxSizer(wxHORIZONTAL);
-	vbox->Add(down_box, 2, wxEXPAND);
-	down_box->Add(deck[0], 4, wxEXPAND);
+	down_box->Add(user_info[0], 2, wxALIGN_TOP);
+	down_box->Add(deck[0], 7, wxEXPAND);
+
 
 	wxBoxSizer *button_box = new wxBoxSizer(wxVERTICAL);
-	down_box->Add(button_box, 1, wxEXPAND);
 	button_box->Add(deal, 1, wxALL, 5);
 	button_box->Add(pass, 1, wxALL, 5);
+	down_box->Add(button_box, 1, wxEXPAND);
+
+	wxBoxSizer *vbox = new wxBoxSizer(wxVERTICAL);
+	vbox->Add(up_box, 2, wxEXPAND);
+	vbox->Add(hbox, 7, wxEXPAND);
+	vbox->Add(down_box, 2, wxEXPAND);
+
 	for (int i = 0; i < 4; i++) {
 		button_box->Add(call_auction[i], 1, wxALL, 5);
 	}
@@ -405,23 +420,111 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	SetSizer(vbox);
 }
 
-void GameInterface::Render() {
+CardSet getCardSet(int n) {
+	CardSet result(0);
+	for (int i = 1; i <= n; i++) {
+		result.Insert(1, 1);
+	}
+	return result;
+}
 
+void GameInterface::StartGame() {
+	user_name[0] = wxT("玩家0");
+	user_name[1] = wxT("玩家1");
+	user_name[2] = wxT("玩家2");
+	user_name[3] = wxT("玩家3");
+	my_cards.Insert(0, 2);
+	my_cards.Insert(1, 4);
+	my_cards.Insert(2, 5);
+	my_cards.Insert(3, 11);
+	center_info->SetLabelText(wxT("正在初始化……"));
+	center_info->Show();
+
+	timer->Start(1000);
+	Render();
+}
+
+#include "Client.h"
+#include "message.h"
+#include <process.h>
+#include <Windows.h>
+
+unsigned WINAPI GameThread(GameInterface& game_interface, Client& client) {
+	while (true) {
+		bool end_loop = false;
+		auto package = client.CollectGameMsg();
+		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
+			wxMessageBox(wxT("断开连接！"));
+			break;
+		}
+		auto message = Message(package.GetData());
+		switch (message.GetType()) {
+			case m_end:
+				end_loop = true;
+				break;
+			case m_playout:
+				if (message.IsRequest()) {
+					// 需要出牌
+					game_interface.is_counting_down = true;
+					game_interface.is_my_turn = true;
+					game_interface.count_down = message.GetTime();
+				} else {
+					game_interface.num_cards[message.GetPlayer()] = message.GetPar();
+					game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
+				}
+				break;
+			case m_deny:
+				wxMessageBox(wxT("请好好出牌！"));
+				break;
+			case m_changestake:
+				game_interface.stake = message.GetPar();
+				break;
+			case m_setlandlord:
+				game_interface.num_cards[message.GetPlayer()] = message.GetPar();
+				game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
+				break;
+		}
+		if (end_loop) {
+			break;
+		}
+		game_interface.Render();
+	}
+}
+
+// 根据当前的状态来渲染房间
+void GameInterface::Render() {
 	deck[0]->SetDeck(my_cards);
 	last_round[0]->SetDeck(last_round_card[0]);
-	deck[1]->SetDeck(CardSet(num_cards[1]));
+	user_info[0]->SetLabelText(user_name[0]);
+	user_info[0]->Show();
+
+	deck[1]->SetDeck(getCardSet(num_cards[1]));
 	last_round[1]->SetDeck(last_round_card[1]);
+	user_info[1]->SetLabelText(user_name[1]);
+	user_info[1]->Show();
+
 	if (num_players == 3) {
 		deck[2]->SetDeck(CardSet(0));
 		last_round[2]->SetDeck(CardSet(0));
-		deck[3]->SetDeck(CardSet(num_cards[2]));
+		user_info[2]->Hide();
+
+		deck[3]->SetDeck(getCardSet(num_cards[2]));
 		last_round[3]->SetDeck(last_round_card[2]);
+		user_info[3]->SetLabelText(user_name[2]);
+		user_info[3]->Show();
 	} else if (num_players == 4) {
-		deck[2]->SetDeck(CardSet(num_cards[2]));
+		deck[2]->SetDeck(getCardSet(num_cards[2]));
 		last_round[2]->SetDeck(last_round_card[2]);
-		deck[3]->SetDeck(CardSet(num_cards[3]));
+		user_info[2]->SetLabelText(user_name[2]);
+		user_info[2]->Show();
+
+		deck[3]->SetDeck(getCardSet(num_cards[3]));
 		last_round[3]->SetDeck(last_round_card[3]);
+		user_info[3]->SetLabelText(user_name[3]);
+		user_info[3]->Show();
 	}
+
+	this->Layout();
 
 	static char number[20];
 	itoa(stake, number, 10);
@@ -466,6 +569,10 @@ void GameInterface::Render() {
 }
 
 void GameInterface::OnDeal(wxCommandEvent &event) {
+	CardSet draw_card(0);
+	int card_num = deck[0]->GetDrawnDeck();
+	get_controller(control);
+	Client &client = control->client;
 	std::cerr << "Dealt!" << std::endl;
 }
 
@@ -473,19 +580,16 @@ void GameInterface::OnPass(wxCommandEvent &event) {
 	std::cerr << "Pass!" << std::endl;
 }
 
-void GameInterface::StartCountDown(int n) {
-	count_down = n;
-	if (timer->IsRunning() == false) {
-		timer->Start(1000);
-	}
-}
-
 void GameInterface::OnTimer(wxTimerEvent &event) {
+	if (!is_counting_down) {
+		return;
+	}
 	if (count_down < 0) {
-		timer->Stop();
+		is_counting_down = false;
+		// TODO 倒计时结束了
+		return;
 	}
 	count_down--;
-	std::cout << count_down << std::endl;
 	static char time_string[10];
 	itoa(count_down, time_string, 10);
 	timer_label->SetLabel(wxT("回合剩余时间：") + wxString(time_string) + wxString("s"));

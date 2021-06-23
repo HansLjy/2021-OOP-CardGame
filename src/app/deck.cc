@@ -97,6 +97,16 @@ DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
 	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient) {
 }
 
+const CardSet& DeckPanel::GetDrawnDeck() {
+	CardSet cards = deck.cards, result(0);
+	int n = cards.GetNumOfCards();
+	for (int i = 0; i < n; i++) {
+		if (is_draw[i]) {
+			result.Insert(cards.GetCard(i));
+		}
+	}
+}
+
 void DeckPanel::SetDeck(const CardSet& card_set) {
 	deck = Deck(card_set);
 }
