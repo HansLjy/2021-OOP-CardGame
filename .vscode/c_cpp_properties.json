@@ -7,7 +7,6 @@
 				"${workspaceFolder}/wxWidgets/include",
 				"${workspaceFolder}/src/app",
 				"${workspaceFolder}/src/game",
-				"${workspaceFolder}/src/interface",
 				"${workspaceFolder}/src/net"
             ],
             "defines": [

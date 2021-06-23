@@ -15,5 +15,7 @@ public:
     ci<m> operator+(int x) const;
     ci<m> operator-(int x) const;
 };
+template class ci<3>;
+template class ci<4>;
 
 #endif

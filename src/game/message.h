@@ -63,5 +63,7 @@ public:
     void SetPlayer(ci<np> v);
     void SetCards(const array<CardSet, np> &a);
 };
+template class MsgSeries<3>;
+template class MsgSeries<4>;
 
 #endif

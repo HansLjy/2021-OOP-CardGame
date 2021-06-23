@@ -4,23 +4,22 @@
 #include <array>
 #include <string>
 
+#include "Server.h"
+
 #include "clockint.h"
 #include "card.h"
 #include "rule.h"
 #include "message.h"
 #include "package.h"
-#include "Server.h"
 #include "disconnection.h"
 
 const int t_bid = 10, t_playout = 20;
-const int peasant = 0, landlord = 1;
 
 using namespace std;
 
-
 template <int np> class CardGame {
 protected:
-    const array<bool, np> ishuman; // whether each player is a human, with the index starting from the room creator and going counterclockwise
+    const array<bool, np> ishuman; // The index starts from the room creator and goes counterclockwise.
     Server &server; // through which messages are transmitted
     const CardSet ccards; // complete card set used
     array<int, np> score;
@@ -37,6 +36,8 @@ public:
     CardGame(array<bool, np> ish, Server &s, const CardSet &c); // returns a card game with "is human" list ish and server s
     void Play();
 };
+template class CardGame<3>;
+template class CardGame<4>;
 
 template <int np> class WinnerBasedGame: public CardGame<np> {
 protected:
@@ -54,6 +55,8 @@ protected:
 public:
     WinnerBasedGame(array<bool, np> ish, Server &s, const CardSet &c, const Rule r);
 };
+template class WinnerBasedGame<3>;
+template class WinnerBasedGame<4>;
 
 class DouDizhuGame: public WinnerBasedGame<3> {
     ci<3> ll; // index of the landlord

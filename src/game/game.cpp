@@ -4,12 +4,13 @@
 #include <array>
 #include <string>
 
+#include "Server.h"
+
 #include "clockint.h"
 #include "card.h"
 #include "rule.h"
 #include "message.h"
 #include "package.h"
-#include "Server.h"
 #include "disconnection.h"
 #include "game.h"
 

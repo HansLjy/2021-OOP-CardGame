@@ -108,9 +108,6 @@ template <int np> void MsgSeries<np>::SetCards(const array<CardSet, np> &a) {
     }
 }
 
-template class MsgSeries<3>;
-template class MsgSeries<4>;
-
 // test code, expected all 1's
 
 // #include <iostream>

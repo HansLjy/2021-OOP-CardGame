@@ -9,5 +9,7 @@ public:
     Disconn(ci<np> i);
     ci<np> GetIndex() const;
 };
+template class Disconn<3>;
+template class Disconn<4>;
 
 #endif
