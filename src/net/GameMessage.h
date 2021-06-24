@@ -5,17 +5,20 @@
 #include "package.h"
 
 //using namespace game_connect;
+namespace ConnMsg {
+    enum msg_t {
+        MSG_PAKAGE=0,
+        MSG_CONN_DENY,
+        MSG_CONN_ACCEPT,
+        MSG_WANT_CLOSE,
+        MSG_GRANT_CLOSE,
+        MSG_SEND_NAME,
+        MSG_RECV_NAME,
+        MSG_GAME_TYPE=7,
+    };
+}
 
-enum msg_t {
-    MSG_PAKAGE,
-    MSG_CONN_DENY,
-    MSG_CONN_ACCEPT,
-    MSG_WANT_CLOSE,
-    MSG_GRANT_CLOSE,
-    MSG_SEND_NAME,
-    MSG_RECV_NAME,
-    MSG_GAME_TYPE,
-};
+using ConnMsg::msg_t;
 
 class GameMessage:public ConnectBase {
     private:
@@ -34,15 +37,15 @@ class GameMessage:public ConnectBase {
         static string getName(char* src, int len) { return string(src, len); }
         void addName(const string& name);
         void setSignal(msg_t ms);
-        void setGameType(game_type t);
+        void setGameType(GameType t);
         void setGameType(char* p);
-        GameMessage():state(MSG_PAKAGE){}
+        GameMessage():state(ConnMsg::MSG_PAKAGE){}
         msg_t get_state() { return state; }
 
         void readPackage(char* src, int len) {
             setPackage(getPackage(src, len));
         }
-        game_type getGameType();
+        GameType getGameType();
         //int get_card_owner_index();
 
         //void clear();

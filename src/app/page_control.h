@@ -49,7 +49,8 @@ public:
 
 	void OnQuit(wxCommandEvent& event);
 	void OnButton(wxCommandEvent& event);
+	void OnStartGame();
+	void OnJoinGame();
+	void OnCreateGame();
 
-	bool Pending();
-	bool CreateGame();
 };

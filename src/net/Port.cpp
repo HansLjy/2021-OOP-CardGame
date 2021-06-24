@@ -2,8 +2,7 @@
 
 #include "Port.h"
 
-Port::Port(port_state state,USHORT port){
-    this->state=state;
+Port::Port(PortState state,USHORT port):error(0),state(state){
 	memset(&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
@@ -15,14 +14,14 @@ void Port::SendSignal(msg_t sig, SOCKET to) {
     SendInfo(gm, to);
 }
 
-void Port::SendGameType(game_type gt, SOCKET to) {
+void Port::SendGameType(GameType gt, SOCKET to) {
     GameMessage gm;
     gm.setGameType(gt);
     SendInfo(gm, to);
 }
 
 void Port::SendInfo(const GameMessage& gm, SOCKET clntsocket){
-    if(clntsocket==INVALID_SOCKET||clntsocket==NULL){
+    if(clntsocket==INVALID_SOCKET||clntsocket==0){
         //return MESSAGE_CANCELED;
         throw ceNullSocket();
     }
@@ -37,7 +36,7 @@ void Port::read_buf(SOCKET s, char* dst, int size) {
     int recv_len;
     while (len < size) {
         recv_len = recv(s, dst, size - len, 0);
-        if (recv_len == 0) {
+        if (recv_len == 0||recv_len==-1) {
             throw ceReadInt();
         }
         len += recv_len;
@@ -59,13 +58,13 @@ msg_t Port::read_msg(SOCKET s,GameMessage& gm,Package& pkg) {
     if (len) {
         read_buf(s, buf, len);
         switch (gm.get_state()) {
-        case MSG_PAKAGE:
+        case ConnMsg::MSG_PAKAGE:
             pkg = gm.getPackage(buf, len);
             break;
-        case MSG_SEND_NAME:
+        case ConnMsg::MSG_SEND_NAME:
             names.push_back(gm.getName(buf, len));
             break;
-        case MSG_GAME_TYPE:
+        case ConnMsg::MSG_GAME_TYPE:
             gm.setGameType(buf);
         default:break;
         }

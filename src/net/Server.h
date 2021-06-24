@@ -12,17 +12,26 @@
 class Server:public Port{
 
 public:
-    void SendGameMsg(const Package &p) const;
-    Package CollectGameMsg(int sender=rec_server);
+    /* for game.h */
+    void SendGameMsg(const Package &p);
+    Package CollectGameMsg(int sender=i_server);
+    const string& GetClientNameR(int k) const;
 
-    int OpenRoom(game_type gt,int humans,int robots);  
-    int StartGame();
+    /* for self */
+    int OpenRoom(GameType gt,int humans,int robots);  
+    //int StartGame();
 
     Server();
     ~Server();
+
+    GameType getGameType()const{ return game_t; }
+    int getHumans()const{ return humans; }
+    int getRobots()const{ return robots; }
+    PortState getState()const { return state; }
+    void setState(PortState state) { this->state = state; }
+    int isError()const { return error; }
 private:
     //...
-    void* game_ptr;
     int humans;
     int robots;
 
@@ -37,22 +46,28 @@ private:
 
     int num_Members;
     HANDLE Mutex[MAX_PLAYERS];
-    queue<Package> buffer[MAX_PLAYERS];
+    queue<Package> buffer[MAX_PLAYERS+1];
 
     SOCKET Member_Sock[MAX_PLAYERS + 1];
 
     int num_Players;
-    SOCKET PlayerSortedSock[MAX_PLAYERS];
+    int PlayerSortedSock[MAX_PLAYERS];
 
     WSAEVENT Member_Event[MAX_PLAYERS + 1];
-    queue<GameMessage> Buf[MAX_PLAYERS + 1];
+    //queue<GameMessage> Buf[MAX_PLAYERS + 1];
 
     int handle_accept();
     int handle_read(int index);
     int handle_close(int index);
     int BufClear(int index);
     int CloseRoom();
-    void setGame();
+    SOCKET getSock(int i)const{ 
+        if (Member_Sock[PlayerSortedSock[i]]) {
+            throw ceNullSocket();
+        }
+        return Member_Sock[PlayerSortedSock[i]]; 
+    }
+    //void setGame();
     // CONNECT_STATE SendGameInfo(const GameMessage& msg, SOCKET clntsocket)const;
 
     static unsigned WINAPI thread_server_main(void* LPserver);

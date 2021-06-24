@@ -11,7 +11,7 @@
 #include "rule.h"
 #include "message.h"
 #include "package.h"
-#include "disconnection.h"
+#include "port.h"
 
 const int t_bid = 10, t_playout = 20;
 
@@ -25,12 +25,13 @@ protected:
     array<int, np> score;
     void notify(ci<np> k, const Message &m) const; // notify the kth player of m
     Message request(ci<np> k) const;
-    void broadc(const MsgSeries<np> &ms) const;
-    void broadc(const MsgSeries<np> &ms, array<bool, np> a) const; // sends m[i] when a[i]
+    void broadcast(const MsgSeries<np> &ms) const;
+    void broadcast(const MsgSeries<np> &ms, array<bool, np> a) const; // sends m[i] when a[i]
     void disptext(const string &s) const;
     void dispeffect(const string &s) const; // global effect
     void dispeffect(ci<np> k, const string &s) const; // player effect
     void dispscore() const; // broadcasts everyone's score
+    void think(ci<np> k) const; // the kth player is thinking
     virtual void play() = 0;
 public:
     CardGame(array<bool, np> ish, Server &s, const CardSet &c); // returns a card game with "is human" list ish and server s

@@ -20,30 +20,30 @@ int GameMessage::to_str(char* inout)const{
 	return out.size();
 }
 
-void GameMessage::setGameType(game_type t) {
+void GameMessage::setGameType(GameType t) {
 	char* p = reinterpret_cast<char*>(&t);
 	setGameType(p);
 }
 
 void GameMessage::setGameType(char*p) {
-	state = MSG_GAME_TYPE;
-	extra_info.assign(p, sizeof(game_type));
+	state = ConnMsg::MSG_GAME_TYPE;
+	extra_info.assign(p, sizeof(GameType));
 }
 
-game_type GameMessage::getGameType() {
+GameType GameMessage::getGameType() {
 	char buf[BUF_SIZE];
-	game_type* g = reinterpret_cast<game_type*>(buf);
-	memcpy(buf, extra_info.c_str(), sizeof(game_type));
+	GameType* g = reinterpret_cast<GameType*>(buf);
+	memcpy(buf, extra_info.c_str(), sizeof(GameType));
 	return *g;
 }
 
 void GameMessage::setPackage(const Package& pkg) {
-	state = MSG_PAKAGE;
+	state = ConnMsg::MSG_PAKAGE;
 	extra_info = pkg.GetData();
 }
 
 void GameMessage::addName(const string& name) {
-	state = MSG_SEND_NAME;
+	state = ConnMsg::MSG_SEND_NAME;
 	extra_info = name;
 }
 
@@ -60,7 +60,7 @@ void GameMessage::setSignal(msg_t ms) {
 }
 
 Package GameMessage::getPackage() {
-	if (state != MSG_PAKAGE) {
+	if (state != ConnMsg::MSG_PAKAGE) {
 		//error_handle;
 	}
 	Header head(true, 0);

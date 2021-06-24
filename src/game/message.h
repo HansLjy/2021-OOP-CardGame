@@ -19,6 +19,7 @@ enum MsgType {
     m_disptext,
     m_dispeffect,
     m_dispscore,
+    m_think,
     m_deal,
     m_bid,
     m_changestake,

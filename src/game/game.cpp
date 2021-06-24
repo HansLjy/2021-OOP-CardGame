@@ -11,7 +11,6 @@
 #include "rule.h"
 #include "message.h"
 #include "package.h"
-#include "disconnection.h"
 #include "game.h"
 
 using namespace std;
@@ -24,16 +23,16 @@ template <int np> void CardGame<np>::notify(ci<np> k, const Message &m) const {
 template <int np> Message CardGame<np>::request(ci<np> k) const {
     Package p = server.CollectGameMsg((int)k);
     if (!p.GetHeader().IsSuccess()) {
-        throw Disconn<np>(k);
+        throw k;
     }
     return Message(p.GetData());
 }
-template <int np> void CardGame<np>::broadc(const MsgSeries<np> &ms) const {
+template <int np> void CardGame<np>::broadcast(const MsgSeries<np> &ms) const {
     for (int i = 0; i < np; i++) {
         notify(i, ms[i]);
     }
 }
-template <int np> void CardGame<np>::broadc(const MsgSeries<np> &ms, array<bool, np> a) const {
+template <int np> void CardGame<np>::broadcast(const MsgSeries<np> &ms, array<bool, np> a) const {
     for (int i = 0; i < np; i++) {
         if (a[i]) {
             notify(i, ms[i]);
@@ -43,26 +42,32 @@ template <int np> void CardGame<np>::broadc(const MsgSeries<np> &ms, array<bool,
 template <int np> void CardGame<np>::disptext(const string &s) const {
     Message m(m_disptext);
     m.SetExtension(s);
-    broadc(m);
+    broadcast(m);
 }
 template <int np> void CardGame<np>::dispeffect(const string &s) const {
     Message m(m_dispeffect);
     m.SetPlayer(np);
     m.SetExtension(s);
-    broadc(m);
+    broadcast(m);
 }
 template <int np> void CardGame<np>::dispeffect(ci<np> k, const string &s) const {
     Message m(m_dispeffect);
     m.SetExtension(s);
     MsgSeries<np> ms(m);
     ms.SetPlayer(k);
-    broadc(ms);
+    broadcast(ms);
 }
 template <int np> void CardGame<np>::dispscore() const {
     Message m(m_dispscore);
     MsgSeries<np> ms(m);
     ms.SetPars(0, score);
-    broadc(ms);
+    broadcast(ms);
+}
+template <int np> void CardGame<np>::think(ci<np> k) const {
+    Message m(m_think);
+    MsgSeries<np> ms(m);
+    ms.SetPlayer(k);
+    broadcast(ms);
 }
 template <int np> CardGame<np>::CardGame(array<bool, np> ish, Server &s, const CardSet &c):
     ishuman(ish), server(s), ccards(c)
@@ -70,20 +75,20 @@ template <int np> CardGame<np>::CardGame(array<bool, np> ish, Server &s, const C
     srand(time(0));
 }
 template <int np> void CardGame<np>::Play() {
-    broadc(Message(m_start));
+    broadcast(Message(m_start));
     try {
         play();
+        Sleep(1000);
         dispscore();
-    } catch (Disconn<np> &d) {
+    } catch (ci<np> k) {
         MsgSeries<np> ms = MsgSeries<np>(Message(m_box));
-        ms.SetPlayer(d.GetIndex());
+        ms.SetPlayer(k);
         for (int i = 0; i < np; i++) {
             ms[i].SetExtension("玩家“$" + to_string(ms[i].GetPlayer()) + "”掉线，游戏结束。");
         }
-        broadc(ms);
+        broadcast(ms);
     }
-    Sleep(1000);
-    broadc(Message(m_end));
+    broadcast(Message(m_end));
 }
 
 template <int np> void WinnerBasedGame<np>::deal(array<int, np> noc) {
@@ -96,14 +101,15 @@ template <int np> void WinnerBasedGame<np>::deal(array<int, np> noc) {
     MsgSeries<np> ms(m);
     ms.SetPars(0, noc);
     ms.SetCards(cards);
-    this->broadc(ms);
+    this->broadcast(ms);
 }
 template <int np> void WinnerBasedGame<np>::changestake(int s) {
     Message m(m_changestake);
     m.SetPar(0, stake = s);
-    this->broadc(m);
+    this->broadcast(m);
 }
 template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
+    this->think(k);
     CardSet c;
     if (this->ishuman[k]) {
         Message m(m_playout, true);
@@ -121,6 +127,12 @@ template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
     } else {
         c = playout_robot(k);
     }
+    Message m(m_playout);
+    m.SetPar(0, cards[k].GetNumOfCards());
+    m.SetCards(c);
+    MsgSeries<np> ms(m);
+    ms.SetPlayer(k);
+    this->broadcast(ms);
     if (c) {
         tcards.Insert(c);
         cards[k].Delete(c);
@@ -138,12 +150,6 @@ template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
     } else if(++npasses == np - 1) {
         last = Analysis();
     }
-    Message m(m_playout);
-    m.SetPar(0, cards[k].GetNumOfCards());
-    m.SetCards(c);
-    MsgSeries<np> ms(m);
-    ms.SetPlayer(k);
-    this->broadc(ms);
 }
 template <int np> WinnerBasedGame<np>::WinnerBasedGame(
     array<bool, np> ish, Server &s, const CardSet &c, const Rule r
@@ -158,6 +164,7 @@ void DouDizhuGame::play() {
         deal(array<int, 3>{17, 17, 17});
         npasses = 0;
         for (ci<3> i = rand(); npasses < 3; i++) {
+            think(i);
             int s;
             if (ishuman[i]) {
                 Message m(m_bid, true);
@@ -173,7 +180,7 @@ void DouDizhuGame::play() {
             m.SetPar(0, s);
             MsgSeries<3> ms(m);
             ms.SetPlayer(i);
-            broadc(ms);
+            broadcast(ms);
             if (s) {
                 changestake(s);
                 if (s == 3) {
@@ -192,9 +199,10 @@ void DouDizhuGame::play() {
     m.SetCards(tcards);
     MsgSeries<3> ms(m);
     ms.SetPlayer((int)ll);
-    broadc(ms);
+    broadcast(ms);
     cards[ll].Insert(tcards);
     tcards = CardSet();
+    Sleep(1000);
     npasses = 2;
     int sprref = 20;
     for (ci<3> i = ll; ; i++) {
@@ -237,6 +245,7 @@ void SirenDouDizhuGame::play() {
         deal(array<int, 4>{25, 25, 25, 25});
         ci<4> i = rand();
         for (int j = 0; j < 4; j++, i++) {
+            think(i);
             int s;
             if (ishuman[i]) {
                 Message m(m_bid, true);
@@ -252,7 +261,7 @@ void SirenDouDizhuGame::play() {
             m.SetPar(0, s);
             MsgSeries<4> ms(m);
             ms.SetPlayer(i);
-            broadc(ms);
+            broadcast(ms);
             if (s) {
                 changestake(s);
                 ll = i;
@@ -267,9 +276,10 @@ void SirenDouDizhuGame::play() {
     m.SetCards(tcards);
     MsgSeries<4> ms(m);
     ms.SetPlayer((int)ll);
-    broadc(ms);
+    broadcast(ms);
     cards[ll].Insert(tcards);
     tcards = CardSet();
+    Sleep(1000);
     npasses = 3;
     for (ci<4> i = ll; ; i++) {
         playout(i);
@@ -340,7 +350,6 @@ ShuangkouGame::ShuangkouGame(array<bool, 4> ish, Server &s):
 // #include "rule.cpp"
 // #include "message.cpp"
 // #include "package.cpp"
-// #include "disconnection.cpp"
 // #include "game_robot.cpp"
 // using namespace std;
 // int n;
@@ -408,6 +417,9 @@ ShuangkouGame::ShuangkouGame(array<bool, 4> ish, Server &s):
 //     case m_dispscore:
 //         cout << "score: ";
 //         for (int i = 0; i < n; i++) cout << m.GetPar(i) << " ";
+//         break;
+//     case m_think:
+//         cout << "player " << m.GetPlayer() << " is thinking";
 //         break;
 //     case m_deal:
 //         cout << "got cards: ";

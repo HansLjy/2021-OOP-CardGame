@@ -290,12 +290,25 @@ GamePending::GamePending(wxWindow *p_parent) : wxPanel(p_parent), p_parent(p_par
 void GamePending::OnTimer(wxTimerEvent &event) {
 	static char time_string[10];
 	itoa(count, time_string, 10);
-	wait_label->SetLabelText(wxT("正在等待玩家加入，等待时长：") + wxString(time_string) + "s");
+	switch (status) {
+		case kWaiting:
+			wait_label->SetLabelText(wxT("正在等待玩家加入，等待时长：") + wxString(time_string) + "s");
+			break;
+		case kJoining:
+			wait_label->SetLabelText(wxT("正在加入房间，等待时长：") + wxString(time_string) + "s");
+			break;
+	}
 	count++;
 }
 
-void GamePending::StartPending() {
+void GamePending::StartPending(Status set_status) {
+	status = set_status;
+	count = 0;
 	timer->Start(1000);
+}
+
+void GamePending::StopPending() {
+	timer->Stop();
 }
 
 wxBEGIN_EVENT_TABLE(GameOver, wxPanel)
@@ -428,26 +441,30 @@ CardSet getCardSet(int n) {
 	return result;
 }
 
-void GameInterface::StartGame() {
-	user_name[0] = wxT("玩家0");
-	user_name[1] = wxT("玩家1");
-	user_name[2] = wxT("玩家2");
-	user_name[3] = wxT("玩家3");
-	my_cards.Insert(0, 2);
-	my_cards.Insert(1, 4);
-	my_cards.Insert(2, 5);
-	my_cards.Insert(3, 11);
-	center_info->SetLabelText(wxT("正在初始化……"));
-	center_info->Show();
-
-	timer->Start(1000);
-	Render();
-}
 
 #include "Client.h"
 #include "message.h"
 #include <process.h>
 #include <Windows.h>
+
+unsigned WINAPI GameThread(GameInterface& game_interface, Client& client);
+
+void GameInterface::StartGame() {
+
+	center_info->SetLabelText(wxT("正在初始化……"));
+	center_info->Show();
+
+	timer->Start(1000);
+
+	// HANDLE hThread;
+	// unsigned threadID;
+	// int param = 5;
+
+	// hThread = (HANDLE)_beginthreadex(NULL, 0, GameThread, (void*)&param, 0, &threadID);
+
+
+	Render();
+}
 
 unsigned WINAPI GameThread(GameInterface& game_interface, Client& client) {
 	while (true) {

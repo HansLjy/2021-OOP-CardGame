@@ -69,8 +69,9 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameMenu);
 			break;
 		case singleID_confirm:
-			ChangeSelection(kGameInterface);
+			// 单人游戏
 			game_interface->StartGame();
+			ChangeSelection(kGameInterface);
 			break;
 		case singleID_back:
 			ChangeSelection(kMainMenu);
@@ -82,14 +83,8 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameCreateSetting);
 			break;
 		case createID_confirm:
-			game_pending->StartPending();
-			ChangeSelection(kGamePending);
-			if (CreateGame()) {
-				game_interface->StartGame();
-				ChangeSelection(kGameInterface);
-			} else {
-				wxMessageBox(wxT("异常！无法创建房间"));
-			}
+			// 多人游戏，创建房间并加入
+			OnCreateGame();
 			break;
 		case createID_back:
 			ChangeSelection(kMultiGameMenu);
@@ -101,15 +96,8 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameMenu);
 			break;
 		case joinID_confirm:
-			game_pending->StartPending();
-			ChangeSelection(kGamePending);
-			if (Pending()) {
-				game_interface->StartGame();
-				ChangeSelection(kGameInterface);
-			} else {
-				wxMessageBox(wxT("连接超时！"));
-				ChangeSelection(kMainMenu);
-			}
+			// 多人游戏，加入房间
+			OnJoinGame();
 			break;
 		case overID_back:
 			ChangeSelection(kMainMenu);
@@ -124,28 +112,53 @@ void PageController::OnButton(wxCommandEvent& event) {
 #include "Server.h"
 #include "Client.h"
 #include "message.h"
+#include "ConnectBase.h"
 
-bool PageController::Pending() {
-	int game_type;
+void PageController::OnCreateGame() {
+	game_pending->StartPending(GamePending::Status::kWaiting);
+	ChangeSelection(kGamePending);
+
+	bool create_success = false;
+	switch (app_status.game_type) {
+		case kLandlord3:
+			create_success = server.OpenRoom(GameConn::Landlords_3, app_status.player_number, 3 - app_status.player_number) == 0;
+			break;
+		case kLandlord4:
+			create_success = server.OpenRoom(GameConn::Landlords_4, app_status.player_number, 4 - app_status.player_number) == 0;
+			break;
+	}
+	if (create_success) {
+		game_interface->StartGame();
+		ChangeSelection(kGameInterface);
+	} else {
+		wxMessageBox(wxT("异常！无法创建房间"));
+	}
+}
+
+void PageController::OnJoinGame() {
+	game_pending->StartPending(GamePending::Status::kJoining);
+	ChangeSelection(kGamePending);
+	GameConn::GameType game_type;
+	switch (app_status.game_type) {
+		case kLandlord3:
+			game_type = GameConn::Landlords_3;
+			break;
+		case kLandlord4:
+			game_type = GameConn::Landlords_4;
+			break;
+	}
 	auto user_name = client.JoinRoom(app_status.IP_address, string(app_status.user_name), game_type);
 	if (user_name.size() == 0) { // 连接超时，异常
-		// TODO
-		return false;
+		wxMessageBox(wxT("连接超时，异常！"));
+		ChangeSelection(kMainMenu);
+		game_pending->StopPending();
+		return;
 	}
 	// 设置用户名
 	for (int i = 0; i < 4; i++) {
 		game_interface->user_name[i] = user_name[i];
 	}
-	return true;
-}
-
-bool PageController::CreateGame() {
-	switch (app_status.game_type) {
-		case kLandlord3:
-			return server.OpenRoom(sanrendoudizhu, app_status.player_number, 3 - app_status.player_number) == 0;
-			break;
-		case kLandlord4:
-			return server.OpenRoom(sirendoudizhu, app_status.player_number, 4 - app_status.player_number) == 0;
-			break;
-	}
+	game_pending->StopPending();
+	game_interface->StartGame();
+	ChangeSelection(kGameInterface);
 }

@@ -7,6 +7,7 @@
 #include "image_panel.h"
 #include "deck.h"
 #include "wrapper.h"
+#include "message.h"
 
 class MainMenu : public wxPanel {
 public:
@@ -118,13 +119,19 @@ class GamePending : public wxPanel {
 public:
 	GamePending () = delete;
 	GamePending (wxWindow *p_parent);
+	
+	enum Status {
+		kWaiting,
+		kJoining
+	} status;
 
 	int			count;
 	wxWindow	*p_parent;
 	wxTimer		*timer;
 	MyLabel		*wait_label;
 
-	void StartPending();
+	void StartPending(Status status);
+	void StopPending();
 	void OnTimer(wxTimerEvent& event);
 
 	wxDECLARE_EVENT_TABLE();
