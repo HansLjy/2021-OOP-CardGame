@@ -8,6 +8,7 @@
 #include "deck.h"
 #include "wrapper.h"
 #include "message.h"
+#include "Client.h"
 
 class MainMenu : public wxPanel {
 public:
@@ -190,7 +191,7 @@ public:
 	DeckPanel		*last_round[4];
 	wxPanel			*midpan;
 
-	void StartGame();
+	void StartGame(Client &client);
 
 	void OnDeal(wxCommandEvent &event);
 	void OnPass(wxCommandEvent &event);

@@ -70,8 +70,8 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case singleID_confirm:
 			// 单人游戏
-			game_interface->StartGame();
 			ChangeSelection(kGameInterface);
+			game_interface->StartGame(client);
 			break;
 		case singleID_back:
 			ChangeSelection(kMainMenu);
@@ -128,8 +128,8 @@ void PageController::OnCreateGame() {
 			break;
 	}
 	if (create_success) {
-		game_interface->StartGame();
 		ChangeSelection(kGameInterface);
+		game_interface->StartGame(client);
 	} else {
 		wxMessageBox(wxT("异常！无法创建房间"));
 	}
@@ -159,6 +159,6 @@ void PageController::OnJoinGame() {
 		game_interface->user_name[i] = user_name[i];
 	}
 	game_pending->StopPending();
-	game_interface->StartGame();
 	ChangeSelection(kGameInterface);
+	game_interface->StartGame(client);
 }

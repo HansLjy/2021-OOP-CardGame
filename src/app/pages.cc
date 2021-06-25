@@ -447,26 +447,13 @@ CardSet getCardSet(int n) {
 #include <process.h>
 #include <Windows.h>
 
-unsigned WINAPI GameThread(GameInterface& game_interface, Client& client);
-
-void GameInterface::StartGame() {
+void GameInterface::StartGame(Client &client) {
 
 	center_info->SetLabelText(wxT("正在初始化……"));
 	center_info->Show();
 
 	timer->Start(1000);
 
-	// HANDLE hThread;
-	// unsigned threadID;
-	// int param = 5;
-
-	// hThread = (HANDLE)_beginthreadex(NULL, 0, GameThread, (void*)&param, 0, &threadID);
-
-
-	Render();
-}
-
-unsigned WINAPI GameThread(GameInterface& game_interface, Client& client) {
 	while (true) {
 		bool end_loop = false;
 		auto package = client.CollectGameMsg();
@@ -482,29 +469,29 @@ unsigned WINAPI GameThread(GameInterface& game_interface, Client& client) {
 			case m_playout:
 				if (message.IsRequest()) {
 					// 需要出牌
-					game_interface.is_counting_down = true;
-					game_interface.is_my_turn = true;
-					game_interface.count_down = message.GetTime();
+					is_counting_down = true;
+					is_my_turn = true;
+					count_down = message.GetTime();
 				} else {
-					game_interface.num_cards[message.GetPlayer()] = message.GetPar();
-					game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
+					num_cards[message.GetPlayer()] = message.GetPar();
+					last_round_card[message.GetPlayer()] = message.GetCards();
 				}
 				break;
 			case m_deny:
 				wxMessageBox(wxT("请好好出牌！"));
 				break;
 			case m_changestake:
-				game_interface.stake = message.GetPar();
+				stake = message.GetPar();
 				break;
 			case m_setlandlord:
-				game_interface.num_cards[message.GetPlayer()] = message.GetPar();
-				game_interface.last_round_card[message.GetPlayer()] = message.GetCards();
+				num_cards[message.GetPlayer()] = message.GetPar();
+				last_round_card[message.GetPlayer()] = message.GetCards();
 				break;
 		}
 		if (end_loop) {
 			break;
 		}
-		game_interface.Render();
+		Render();
 	}
 }
 
