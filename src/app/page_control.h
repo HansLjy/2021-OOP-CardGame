@@ -1,8 +1,10 @@
-#pragma once
+#ifndef PAGE_CONTROL_H
+#define PAGE_CONTROL_H
+#define WIN32_LEAN_AND_MEAN
 #include "wx/simplebook.h"
-#include "pages.h"
-#include "Server.h"
 #include "Client.h"
+#include "GameLauncher.h"
+#include "pages.h"
 
 enum GUISingleOrMulti {
 	kSingle = 0,
@@ -33,7 +35,7 @@ struct AppStatus {
 class PageController : public wxSimplebook {
 public:
 	AppStatus app_status;
-	Server server;
+	GameLauncher game_launcher;
 	Client client;
 
 	PageController () = delete;
@@ -49,8 +51,17 @@ public:
 
 	void OnQuit(wxCommandEvent& event);
 	void OnButton(wxCommandEvent& event);
-	void OnStartGame();
-	void OnJoinGame();
-	void OnCreateGame();
+
+	void OnJoinSuccess(wxCommandEvent& event);
+	void OnJoinFail(wxCommandEvent& event);
+	void OnCreateSuccess(wxCommandEvent& event);
+	void OnCreateFail(wxCommandEvent& event);
+
+	void JoinGame();
+	void CreateAndJoinGame();
+
+	wxDECLARE_EVENT_TABLE();
 
 };
+
+#endif

@@ -1,6 +1,6 @@
 #include "page_control.h"
 #include "page_control_event.h"
-#include <Windows.h>
+#include "events.h"
 #include <process.h>
 
 enum {
@@ -13,6 +13,26 @@ enum {
 	kGameOver,
 	kGameInterface,
 };
+
+wxBEGIN_EVENT_TABLE(PageController, wxSimplebook)
+	EVT_BUTTON(mainID_play_single, PageController::OnButton)
+	EVT_BUTTON(mainID_play_multi, PageController::OnButton)
+	EVT_BUTTON(singleID_confirm, PageController::OnButton)
+	EVT_BUTTON(singleID_back, PageController::OnButton)
+	EVT_BUTTON(multiID_join_game, PageController::OnButton)
+	EVT_BUTTON(multiID_create_game, PageController::OnButton)
+	EVT_BUTTON(multiID_back, PageController::OnButton)
+	EVT_BUTTON(joinID_confirm, PageController::OnButton)
+	EVT_BUTTON(joinID_back, PageController::OnButton)
+	EVT_BUTTON(createID_confirm, PageController::OnButton)
+	EVT_BUTTON(createID_back, PageController::OnButton)
+	EVT_BUTTON(overID_back, PageController::OnButton)
+	EVT_BUTTON(wxID_EXIT, PageController::OnQuit)
+	EVT_COMMAND(eventID_join_success, JoinSuccessEvent, PageController::OnJoinSuccess)
+	EVT_COMMAND(eventID_join_fail, JoinSuccessEvent, PageController::OnJoinFail)
+	EVT_COMMAND(eventID_create_success, JoinSuccessEvent, PageController::OnCreateSuccess)
+	EVT_COMMAND(eventID_create_fail, JoinSuccessEvent, PageController::OnJoinFail)
+wxEND_EVENT_TABLE()
 
 PageController::PageController(wxWindow* p_parent)
 	: wxSimplebook(p_parent) {
@@ -40,19 +60,6 @@ PageController::PageController(wxWindow* p_parent)
 	game_interface = new GameInterface(this);
 	AddPage(game_interface, wxT("Game Interface"));
 
-	Connect(mainID_play_single, 	wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(mainID_play_multi, 		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(singleID_confirm, 		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(singleID_back,	  		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(multiID_join_game,		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(multiID_create_game,	wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(multiID_back, 			wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(joinID_confirm, 		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(joinID_back, 			wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(createID_confirm, 		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(createID_back, 			wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(overID_back, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnButton));
-	Connect(wxID_EXIT, 		  		wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(OnQuit));
 }
 
 void PageController::OnQuit(wxCommandEvent& event) {
@@ -84,7 +91,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case createID_confirm:
 			// 多人游戏，创建房间并加入
-			OnCreateGame();
+			CreateAndJoinGame();
 			break;
 		case createID_back:
 			ChangeSelection(kMultiGameMenu);
@@ -97,7 +104,7 @@ void PageController::OnButton(wxCommandEvent& event) {
 			break;
 		case joinID_confirm:
 			// 多人游戏，加入房间
-			OnJoinGame();
+			JoinGame();
 			break;
 		case overID_back:
 			ChangeSelection(kMainMenu);
@@ -109,56 +116,48 @@ void PageController::OnButton(wxCommandEvent& event) {
 
 }
 
-#include "Server.h"
 #include "Client.h"
 #include "message.h"
 #include "ConnectBase.h"
+#include "pages.h"
+#include <thread>
 
-void PageController::OnCreateGame() {
-	game_pending->StartPending(GamePending::Status::kWaiting);
-	ChangeSelection(kGamePending);
+void GameThread(Client &client);
+void CreateGameAndJoinThread (AppStatus &status, GameLauncher& launcher, Client& client);
+void JoinGameThread (AppStatus &status, Client& client);
 
-	bool create_success = false;
-	switch (app_status.game_type) {
-		case kLandlord3:
-			create_success = server.OpenRoom(GameConn::Landlords_3, app_status.player_number, 3 - app_status.player_number) == 0;
-			break;
-		case kLandlord4:
-			create_success = server.OpenRoom(GameConn::Landlords_4, app_status.player_number, 4 - app_status.player_number) == 0;
-			break;
-	}
-	if (create_success) {
-		ChangeSelection(kGameInterface);
-		game_interface->StartGame(client);
-	} else {
-		wxMessageBox(wxT("异常！无法创建房间"));
-	}
+void PageController::OnJoinSuccess(wxCommandEvent& event) {
+	game_interface->StartGame(client);
+	ChangeSelection(kGameInterface);
 }
 
-void PageController::OnJoinGame() {
+void PageController::OnJoinFail(wxCommandEvent& event) {
+	wxMessageBox(wxT("加入游戏失败！连接超时！"));
+	ChangeSelection(kMainMenu);
+}
+
+void PageController::OnCreateSuccess(wxCommandEvent& event) {
+	game_interface->StartGame(client);
+	ChangeSelection(kGameInterface);
+}
+
+void PageController::OnCreateFail(wxCommandEvent& event) {
+	wxMessageBox(wxT("创建房间失败！"));
+	ChangeSelection(kMainMenu);
+}
+
+void PageController::CreateAndJoinGame() {
+	game_pending->StartPending(GamePending::Status::kWaiting);
+	ChangeSelection(kGamePending);
+	std::thread t(CreateGameAndJoinThread, std::ref(app_status), std::ref(game_launcher), std::ref(client));
+	t.detach();
+}
+
+void PageController::JoinGame() {
 	game_pending->StartPending(GamePending::Status::kJoining);
 	ChangeSelection(kGamePending);
-	GameConn::GameType game_type;
-	switch (app_status.game_type) {
-		case kLandlord3:
-			game_type = GameConn::Landlords_3;
-			break;
-		case kLandlord4:
-			game_type = GameConn::Landlords_4;
-			break;
-	}
-	auto user_name = client.JoinRoom(app_status.IP_address, string(app_status.user_name), game_type);
-	if (user_name.size() == 0) { // 连接超时，异常
-		wxMessageBox(wxT("连接超时，异常！"));
-		ChangeSelection(kMainMenu);
-		game_pending->StopPending();
-		return;
-	}
-	// 设置用户名
-	for (int i = 0; i < 4; i++) {
-		game_interface->user_name[i] = user_name[i];
-	}
-	game_pending->StopPending();
-	ChangeSelection(kGameInterface);
-	game_interface->StartGame(client);
+
+	// Below should be changed into multi-threaded version
+	std::thread t(JoinGameThread, std::ref(app_status), std::ref(client));
+	t.detach();
 }

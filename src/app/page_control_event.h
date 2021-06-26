@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PAGE_CONTROL_EVENT_H
+#define PAGE_CONTROL_EVENT_H
 enum {
 	mainID_play_single = 1000,
 	mainID_play_multi
@@ -52,3 +53,17 @@ enum {
 enum {
 	overID_back = 8000
 };
+
+// 同步并行代码使用的事件 id
+enum {
+	eventID_join_success = 9000,
+	eventID_join_fail,
+	eventID_create_success,
+	eventID_create_fail,
+	eventID_refresh,
+	eventID_game_over,
+	eventID_log_out,
+	eventID_denied
+};
+
+#endif

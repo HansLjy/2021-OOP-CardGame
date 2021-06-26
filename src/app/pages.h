@@ -1,4 +1,6 @@
-#pragma once
+#ifndef PAGES_H
+#define PAGES_H
+
 #include "wx/panel.h"
 #include "wx/textctrl.h"
 #include "wx/textwrapper.h"
@@ -156,25 +158,7 @@ public:
 class GameInterface : public wxPanel {
 public:
 	// Status
-	int num_players;			// 玩家的数量
-	int num_cards[4];			// 牌的数量
-	int stake;					// 倍数
-	int count_down;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
-	int smallest_bid;			// 最小初始分
-	int largest_bid;			// 最大初始分
-
-	bool is_counting_down;		// 是否正在倒计时
-	bool show_stake;			// 是否显示倍数
-	bool show_count_down;		// 是否显示倒计时
-	bool is_auction;			// 是否是叫分，叫分时候右下角显示四个按钮
-	bool is_my_turn;			// 是否轮到我行动，轮到我行动的时候
-
-	CardSet my_cards;			// 我的牌
-	CardSet last_round_card[4];	// 上一轮的牌
-	wxString user_name[4];		// 用户名
-	string info;
-	Message LastRequest;
-
+	
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
@@ -193,10 +177,15 @@ public:
 
 	void StartGame(Client &client);
 
+	void OnDenied(wxCommandEvent &event);
+	void OnLogOut(wxCommandEvent &event);
 	void OnDeal(wxCommandEvent &event);
 	void OnPass(wxCommandEvent &event);
 	void OnTimer(wxTimerEvent &event);
+	void OnRefresh(wxCommandEvent &event);
 	void Render();
 
 	wxDECLARE_EVENT_TABLE();
 };
+
+#endif
