@@ -36,7 +36,7 @@ class Message {
     string ext;
 public:
     Message(MsgType t = m_empty, bool b = false); // returns a message with unspecified parameters
-    Message(const string &s); // decodes s to a message
+    explicit Message(const string &s); // decodes s to a message
     MsgType GetType() const; // returns the type
     bool IsRequest() const; // returns whether the message requires a reply
     int GetPar(int k = 0) const; // returns the kth parameter, with k in [0, 8)
@@ -57,7 +57,7 @@ public:
 
 template <int np> class MsgSeries: public array<Message, np> {
 public:
-    MsgSeries(const Message &m = Message()); // returns a message series duplicating m
+    explicit MsgSeries(const Message &m = Message()); // returns a message series duplicating m
     void SetPar(int k, array<int, np> a); // a[i] for the ith message
     void SetPar(int k, ci<np> v); // v goes in the opposite direction from the message index
     void SetPars(int k, array<int, np> a); // sets the first np parameters from k with left rotation

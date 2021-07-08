@@ -25,9 +25,9 @@ MainMenu::MainMenu(wxWindow* p_parent)
 	right_panel 	= new wxPanel(this);
 	title 			= new MyLabel(right_panel, wxID_ANY, wxT("主菜单"));
 	image 			= new wxImagePanel(this, wxString("./static/main.jpg"), wxBITMAP_TYPE_JPEG);
-	b_play_single 	= new MyButton(right_panel, mainID_play_single, wxT("Single Player"));
-	b_play_multi	= new MyButton(right_panel, mainID_play_multi, wxT("Multi Player"));
-	b_quit 			= new MyButton(right_panel, wxID_EXIT, wxT("Quit"));
+	b_play_single 	= new MyButton(right_panel, mainID_play_single, wxT("单人游戏"));
+	b_play_multi	= new MyButton(right_panel, mainID_play_multi, wxT("多人游戏"));
+	b_quit 			= new MyButton(right_panel, wxID_EXIT, wxT("退出游戏"));
 
 	title->SetFont(h1_font);
 	b_play_single->SetFont(button_font);
@@ -55,6 +55,7 @@ void MainMenu::OnQuit(wxCommandEvent& event) {
 void MainMenu::OnPlaySingle(wxCommandEvent& event) {
 	auto control = static_cast<PageController*>(this->p_parent);
 	control->app_status.single_multi = kSingle;
+	control->app_status.IP_address = "127.0.0.1";
 	std::cerr << "Select Single" << std::endl;
 	event.Skip();
 }
@@ -67,25 +68,60 @@ void MainMenu::OnPlayMulti(wxCommandEvent& event) {
 }
 
 wxBEGIN_EVENT_TABLE(SingleGameMenu, wxPanel)
-	EVT_BUTTON(singleID_confirm, SingleGameMenu::OnConfirm)
+	EVT_BUTTON(singleID_create, SingleGameMenu::OnCreate)
+	EVT_BUTTON(singleID_join, SingleGameMenu::OnJoin)
 	EVT_BUTTON(singleID_back, SingleGameMenu::OnReturn)
 wxEND_EVENT_TABLE()
 
-SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
+SingleGameMenu::SingleGameMenu(wxWindow *p_parent)
+	: wxPanel(p_parent), p_parent(p_parent) {
+	title = new MyLabel(this, wxID_ANY, wxT("本地游戏"));
+	join = new MyButton(this, singleID_join, wxT("加入本地游戏"));
+	create = new MyButton(this, singleID_create, wxT("创建本地游戏房间"));
+	go_back = new MyButton(this, singleID_back, wxT("返回"));
+
+	CenterBlockSizer *sizer = new CenterBlockSizer(this);
+	sizer->AddWidget(title, true);
+	sizer->AddWidget(join, true);
+	sizer->AddWidget(create, true);
+	sizer->AddWidget(go_back, true);
+	sizer->Create();
+
+	SetSizer(sizer);
+}
+
+void SingleGameMenu::OnCreate(wxCommandEvent &event) {
+	event.Skip();
+}
+
+void SingleGameMenu::OnJoin(wxCommandEvent &event) {
+	event.Skip();
+}
+
+void SingleGameMenu::OnReturn(wxCommandEvent &event) {
+	event.Skip();
+}
+
+wxBEGIN_EVENT_TABLE(SingleGameCreateMenu, wxPanel)
+	EVT_BUTTON(singleCreateID_confirm, SingleGameCreateMenu::OnConfirm)
+	EVT_BUTTON(singleCreateID_back, SingleGameCreateMenu::OnReturn)
+wxEND_EVENT_TABLE()
+
+SingleGameCreateMenu::SingleGameCreateMenu (wxWindow* p_parent)
 	: wxPanel (p_parent), p_parent(p_parent) {
 
-	title = new MyLabel(this, wxID_ANY, wxT("Single Player Mode"));
-	game_select_label = new MyLabel(this, wxID_ANY, wxT("Choose game: "));
-	game_select = new wxChoice(this, singleID_game_select);
-	user_name_label = new MyLabel(this, wxID_ANY, wxT("User Name: "));
-	user_name_input = new wxTextCtrl(this, singleID_player_number, wxT("Player NO.1"));
-	user_number_label = new MyLabel(this, wxID_ANY, wxT("Player Number: "));
-	user_number_input = new wxSpinCtrl(this, singleID_player_number, wxT("4"));
-	confirm = new MyButton(this, singleID_confirm, wxT("confirm"));
-	go_back = new MyButton(this, singleID_back, wxT("return"));
+	title = new MyLabel(this, wxID_ANY, wxT("单人游戏"));
+	game_select_label = new MyLabel(this, wxID_ANY, wxT("选择游戏："));
+	game_select = new wxChoice(this, singleCreateID_game_select);
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("用户名："));
+	user_name_input = new wxTextCtrl(this, singleCreateID_player_number, wxT("玩家 1"));
+	user_number_label = new MyLabel(this, wxID_ANY, wxT("玩家数量："));
+	user_number_input = new wxSpinCtrl(this, singleCreateID_player_number, wxT("4"));
+	confirm = new MyButton(this, singleCreateID_confirm, wxT("确认"));
+	go_back = new MyButton(this, singleCreateID_back, wxT("返回"));
 
-	game_select->Insert(wxT("争上游"), 0);
-	game_select->Insert(wxT("斗地主"), 1);
+	game_select->Insert(wxT("三人斗地主"), 0);
+	game_select->Insert(wxT("四人斗地主"), 1);
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
@@ -104,7 +140,7 @@ SingleGameMenu::SingleGameMenu (wxWindow* p_parent)
 	SetSizer(sizer);
 }
 
-void SingleGameMenu::OnConfirm(wxCommandEvent &event) {
+void SingleGameCreateMenu::OnConfirm(wxCommandEvent &event) {
 	get_controller(control)
 	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
 	control->app_status.user_name = user_name_input->GetLineText(0);
@@ -116,7 +152,7 @@ void SingleGameMenu::OnConfirm(wxCommandEvent &event) {
 	event.Skip();
 }
 
-void SingleGameMenu::OnReturn(wxCommandEvent &event) {
+void SingleGameCreateMenu::OnReturn(wxCommandEvent &event) {
 	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
@@ -130,10 +166,10 @@ wxEND_EVENT_TABLE()
 MultiGameMenu::MultiGameMenu (wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 	
-	title = new MyLabel(this, wxID_ANY, wxT("Multi Player Game"));
-	join_game = new MyButton(this, multiID_join_game, wxT("Join game"));
-	create_game = new MyButton(this, multiID_create_game, wxT("Create game"));
-	go_back = new MyButton(this, multiID_back, wxT("Return"));
+	title = new MyLabel(this, wxID_ANY, wxT("多人游戏"));
+	join_game = new MyButton(this, multiID_join_game, wxT("加入游戏"));
+	create_game = new MyButton(this, multiID_create_game, wxT("创建房间"));
+	go_back = new MyButton(this, multiID_back, wxT("返回"));
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
 
@@ -173,15 +209,13 @@ wxEND_EVENT_TABLE()
 MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
 	
-	title = new MyLabel(this, wxID_ANY, wxT("Join Game"));
-	user_name_label = new MyLabel(this, wxID_ANY, wxT("User Name: "));
-	user_name_input = new wxTextCtrl(this, joinID_username, wxT("Player NO.1"));
-	IP_label = new MyLabel(this, wxID_ANY, wxT("IP: "));
+	title = new MyLabel(this, wxID_ANY, wxT("加入游戏"));
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("用户名："));
+	user_name_input = new wxTextCtrl(this, joinID_username, wxT("玩家 1"));
+	IP_label = new MyLabel(this, wxID_ANY, wxT("房间 IP"));
 	IP_input = new wxTextCtrl(this, joinID_IP);
-	passwd_label = new MyLabel(this, wxID_ANY, wxT("Password: "));
-	passwd_input = new wxTextCtrl(this, joinID_passwd);
-	confirm = new MyButton(this, joinID_confirm, wxT("Confirm"));
-	go_back = new MyButton(this, joinID_back, wxT("Return"));
+	confirm = new MyButton(this, joinID_confirm, wxT("确认"));
+	go_back = new MyButton(this, joinID_back, wxT("返回"));
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
 
@@ -190,8 +224,6 @@ MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
 	sizer->AddWidget(user_name_input, false);
 	sizer->AddWidget(IP_label, true);
 	sizer->AddWidget(IP_input, false);
-	sizer->AddWidget(passwd_label, true);
-	sizer->AddWidget(passwd_input, false);
 	sizer->AddWidget(confirm, true);
 	sizer->AddWidget(go_back, false);
 	sizer->Create();
@@ -205,8 +237,6 @@ void MultiGameJoinSetting::OnConfirm(wxCommandEvent &event) {
 	control->app_status.user_name = user_name_input->GetLineText(0);
 	std::cerr << "IP address: " << IP_input->GetLineText(0) << std::endl;
 	control->app_status.IP_address = IP_input->GetLineText(0);
-	std::cerr << "Password: " << passwd_input->GetLineText(0) << std::endl;
-	control->app_status.passwd = passwd_input->GetLineText(0);
 	std::cerr << "Click Confirm" << std::endl;
 	event.Skip();
 }
@@ -223,17 +253,15 @@ wxEND_EVENT_TABLE()
 
 MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent) {
-	title = new MyLabel(this, wxID_ANY, wxT("Create Game"));
-	game_select_label = new MyLabel(this, wxID_ANY, wxT("Choose game: "));
+	title = new MyLabel(this, wxID_ANY, wxT("创建游戏"));
+	game_select_label = new MyLabel(this, wxID_ANY, wxT("选择游戏："));
 	game_select = new wxChoice(this, createID_game_select);
-	user_name_label = new MyLabel(this, wxID_ANY, wxT("User Name: "));
-	user_name_input = new wxTextCtrl(this, createID_username, wxT("Player NO.1"));
-	user_number_label = new MyLabel(this, wxID_ANY, wxT("Player Number: "));
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("用户名："));
+	user_name_input = new wxTextCtrl(this, createID_username, wxT("玩家 1"));
+	user_number_label = new MyLabel(this, wxID_ANY, wxT("玩家数量："));
 	user_number_input = new wxSpinCtrl(this, createID_player_number, wxT("4"));
-	passwd_label = new MyLabel(this, wxID_ANY, wxT("Password: "));
-	passwd_input = new wxTextCtrl(this, createID_passwd);
-	confirm = new MyButton(this, createID_confirm, wxT("Confirm"));
-	go_back = new MyButton(this, createID_back, wxT("Return"));
+	confirm = new MyButton(this, createID_confirm, wxT("确认"));
+	go_back = new MyButton(this, createID_back, wxT("返回"));
 
 	game_select->Insert(wxT("三人斗地主"), 0);
 	game_select->Insert(wxT("四人斗地主"), 1);
@@ -247,8 +275,6 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 	sizer->AddWidget(user_name_input);
 	sizer->AddWidget(user_number_label, true);
 	sizer->AddWidget(user_number_input);
-	sizer->AddWidget(passwd_label, true);
-	sizer->AddWidget(passwd_input);
 	sizer->AddWidget(confirm, true);
 	sizer->AddWidget(go_back);
 	sizer->Create();
@@ -265,8 +291,6 @@ void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
 	control->app_status.user_name = user_name_input->GetLineText(0);
 	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
 	control->app_status.player_number = user_number_input->GetValue();
-	std::cerr << "Password: " << passwd_input->GetLineText(0) << std::endl;
-	control->app_status.passwd = passwd_input->GetLineText(0);
 	std::cerr << "Click Confirm" << std::endl;
 	event.Skip();
 }
@@ -290,6 +314,7 @@ GamePending::GamePending(wxWindow *p_parent) : wxPanel(p_parent), p_parent(p_par
 }
 
 void GamePending::OnTimer(wxTimerEvent &event) {
+	this->Layout();
 	static char time_string[10];
 	itoa(count, time_string, 10);
 	switch (status) {
@@ -304,7 +329,6 @@ void GamePending::OnTimer(wxTimerEvent &event) {
 }
 
 void GamePending::StartPending(Status set_status) {
-	wait_label->SetLabelText("FUCK YOU");
 	status = set_status;
 	count = 0;
 	timer->Start(1000);
@@ -473,7 +497,7 @@ CardSet getCardSet(int n) {
 #include "Client.h"
 #include "message.h"
 
-void JoinGameThread (AppStatus &status, Client& client) {
+void JoinGameThread (AppStatus &status, Client& client, PageController *controller) {
 	using namespace GameStatus;
 	GameConn::GameType game_type;
 	switch (status.game_type) {
@@ -487,7 +511,7 @@ void JoinGameThread (AppStatus &status, Client& client) {
 	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
 	if (new_user_name.size() == 0) { // 连接超时，异常
 		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
-		wxTheApp->QueueEvent(join_fail);
+		controller->GetEventHandler()->QueueEvent(join_fail);
 		return;
 	}
 	// 设置用户名
@@ -495,28 +519,32 @@ void JoinGameThread (AppStatus &status, Client& client) {
 		user_name[i] = new_user_name[i];
 	}
 	wxCommandEvent *join_success = new wxCommandEvent(JoinSuccessEvent, eventID_join_success);
-	wxTheApp->QueueEvent(join_success);
+	controller->GetEventHandler()->QueueEvent(join_success);
 }
 
-void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client& client) {
+void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client& client, PageController* controller) {
+	std::cerr << "Create Game And Join" << std::endl;
+	std::cerr << status.player_number;
 	using namespace GameStatus;
 	bool create_success = false;
 	switch (status.game_type) {
 		case kLandlord3:
 			create_success = launcher.OpenRoom(GameConn::Landlords_3, status.player_number, 3 - status.player_number) == 0;
-			std::cout << "Create LandLord3" << std::endl;
+			std::cerr << "Create LandLord3" << std::endl;
 			break;
 		case kLandlord4:
 			create_success = launcher.OpenRoom(GameConn::Landlords_4, status.player_number, 4 - status.player_number) == 0;
-			std::cout << "Create LandLord4" << std::endl;
+			std::cerr << "Create LandLord4" << std::endl;
 			break;
 	}
 	if (create_success) {
+		std::cerr << "Create Success" << std::endl;
 		wxCommandEvent *success = new wxCommandEvent(CreateSuccessEvent, eventID_create_success);
-		wxTheApp->QueueEvent(success);
+		controller->GetEventHandler()->QueueEvent(success);
 	} else {
+		std::cerr << "Create Fail" << std::endl;
 		wxCommandEvent *fail = new wxCommandEvent(CreateFailEvent, eventID_create_fail);
-		wxTheApp->QueueEvent(fail);
+		controller->GetEventHandler()->QueueEvent(fail);
 	}
 	GameConn::GameType game_type;
 	switch (status.game_type) {
@@ -527,29 +555,43 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 			game_type = GameConn::Landlords_4;
 			break;
 	}
-	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
+	std::cerr << status.IP_address << " " << status.user_name << std::endl;
+	auto new_user_name = client.JoinRoom(status.IP_address, status.user_name.ToStdString(), game_type);
 	if (new_user_name.size() == 0) { // 连接超时，异常
+		std::cerr << "Join Fail" << std::endl;
 		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
-		wxTheApp->QueueEvent(join_fail);
+		controller->GetEventHandler()->QueueEvent(join_fail);
 		return;
 	}
 	// 设置用户名
-	for (int i = 0; i < 4; i++) {
-		user_name[i] = new_user_name[i];
+	switch(status.game_type) {
+		case kLandlord3:
+			user_name[0] = new_user_name[0];
+			user_name[1] = new_user_name[1];
+			user_name[3] = new_user_name[2];
+			break;
+		case kLandlord4:
+			for (int i = 0; i < 4; i++) {
+				user_name[i] = new_user_name[i];
+			}
+			break;
 	}
-	wxCommandEvent *join_success = new wxCommandEvent(JoinSuccessEvent, eventID_join_success);
-	wxTheApp->QueueEvent(join_success);
+	wxCommandEvent join_success(JoinSuccessEvent, eventID_join_success);
+	controller->GetEventHandler()->QueueEvent(join_success.Clone());
+	std::cerr << "Join Success" << std::endl;
 }
 
-void GameThread(Client &client) {
+void GameThread(Client &client, GameInterface *game_interface) {
 	using namespace GameStatus;
+	std::cerr << "Start Game Thread";
 
 	while (true) {
 		bool end_loop = false;
 		auto package = client.CollectGameMsg();
+		std::cerr << "Looping" << std::endl;
 		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
 			wxCommandEvent *log_out = new wxCommandEvent(LogOutEvent, eventID_log_out);
-			wxTheApp->QueueEvent(log_out);
+			game_interface->GetEventHandler()->QueueEvent(log_out);
 			break;
 		}
 		auto message = Message(package.GetData());
@@ -571,7 +613,7 @@ void GameThread(Client &client) {
 				break;
 			case m_deny:
 				denied = new wxCommandEvent(DeniedEvent, eventID_denied);
-				wxTheApp->QueueEvent(denied);
+				game_interface->GetEventHandler()->QueueEvent(denied);
 				break;
 			case m_changestake:
 				stake.store(message.GetPar());
@@ -585,10 +627,11 @@ void GameThread(Client &client) {
 			break;
 		}
 		wxCommandEvent *refresh = new wxCommandEvent(RefreshEvent, eventID_refresh);
-		wxTheApp->QueueEvent(refresh);
+		game_interface->GetEventHandler()->QueueEvent(refresh);
 	}
 	wxCommandEvent *over = new wxCommandEvent(GameOverEvent, eventID_game_over);
-	wxTheApp->QueueEvent(over);
+	game_interface->GetEventHandler()->QueueEvent(over);
+	std::cerr << "End Game Thread";
 }
 
 void GameInterface::StartGame(Client &client) {
@@ -599,7 +642,7 @@ void GameInterface::StartGame(Client &client) {
 	center_info->Show();
 	timer->Start(1000);
 
-	std::thread game_thread(GameThread, std::ref(client));
+	std::thread game_thread(GameThread, std::ref(client), this);
 	game_thread.detach();
 }
 
@@ -686,11 +729,25 @@ void GameInterface::OnRefresh(wxCommandEvent &event) {
 	Render();
 }
 
+void GameInterface::OnDenied(wxCommandEvent &event) {
+	wxMessageBox(wxT("出牌不合法！"));
+}
+
+void GameInterface::OnLogOut(wxCommandEvent &event) {
+	wxMessageBox(wxT("连接已断开！"));
+}
+
 void GameInterface::OnDeal(wxCommandEvent &event) {
-	CardSet draw_card(0);
-	int card_num = deck[0]->GetDrawnDeck();
+	CardSet draw_card = deck[0]->GetDrawnDeck();
+
 	get_controller(control);
 	Client &client = control->client;
+	Message new_message;
+	new_message.SetCards(draw_card);
+
+	Package new_package(Header(1, 0), new_message.String());
+	client.SendGameMsg(new_package);
+
 	std::cerr << "Dealt!" << std::endl;
 }
 

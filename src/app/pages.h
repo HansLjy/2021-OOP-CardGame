@@ -37,6 +37,24 @@ public:
 	SingleGameMenu () = delete;
 	SingleGameMenu (wxWindow *p_parent);
 
+	MyLabel			*title;
+	wxWindow		*p_parent;
+	MyButton		*join;
+	MyButton		*create;
+	MyButton		*go_back;
+
+	void OnCreate(wxCommandEvent &event);
+	void OnJoin(wxCommandEvent &event);
+	void OnReturn(wxCommandEvent &event);
+
+	wxDECLARE_EVENT_TABLE();
+};
+
+class SingleGameCreateMenu : public wxPanel {
+public:
+	SingleGameCreateMenu () = delete;
+	SingleGameCreateMenu (wxWindow *p_parent);
+
 	MyLabel 		*title;
 	wxWindow 	 	*p_parent;
 	MyLabel 		*game_select_label;
@@ -83,8 +101,6 @@ public:
 	wxTextCtrl		*user_name_input;
 	MyLabel			*IP_label;
 	wxTextCtrl		*IP_input;
-	MyLabel			*passwd_label;
-	wxTextCtrl		*passwd_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
 
@@ -107,8 +123,6 @@ public:
 	wxTextCtrl		*user_name_input;
 	MyLabel 		*user_number_label;
 	wxSpinCtrl   	*user_number_input;
-	MyLabel			*passwd_label;
-	wxTextCtrl		*passwd_input;
 	MyButton		*confirm;
 	MyButton		*go_back;
 

@@ -127,35 +127,48 @@ bool Analysis::operator>(const Analysis &a) const {
 // #include "card.cpp"
 // using namespace std;
 // int main() {
-//     CardSet s[2] = {CardSet(), CardSet()};
-//     int i = 0, x;
-//     Rule r = r_1v2_wiki;
+//     CardSet cs[2] = {CardSet(), CardSet()};
+//     int i = 0, suit = spade;
+//     Rule rule = r_1v2_wiki;
 //     while (true) {
-//         cin >> x;
-//         if (x != 111) {
-//             if (x == -1) {
-//                 i = 0;
-//             } else if (x == -2) {
-//                 i = 1;
-//             } else if (x >= 0 && x < 54) {
-//                 s[i].Insert(Card(x));
-//             } else if (x == -10) {
-//                 s[0] = CardSet();
-//             } else if (x == -20) {
-//                 s[1] = CardSet();
-//             } else if (x == -11) {
-//                 Analysis a = Analysis(s[0], r);
-//                 cout << a.GetFlag() << " " << a.GetPrim() << " " << a.GetKick() << " " << a.GetLen() << " " << a.GetVal() << endl;
-//             } else if (x == -22) {
-//                 Analysis a = Analysis(s[1], r);
-//                 cout << a.GetFlag() << " " << a.GetPrim() << " " << a.GetKick() << " " << a.GetLen() << " " << a.GetVal() << endl;
-//             } else if (x >= 100) {
-//                 r = (Rule)(x - 100);
-//             } else if (x == -100) {
-//                 cout << (Analysis(s[0], r) > Analysis(s[1], r)) << endl;
-//             }
+//         string s;
+//         cin >> s;
+//         if (s == "end") break;
+//         if (s == "cs0") {
+//             i = 0;
+//         } else if (s == "cs1") {
+//             i = 1;
+//         } else if (s == "clear0") {
+//             cs[0] = CardSet();
+//         } else if (s == "clear1") {
+//             cs[1] = CardSet();
+//         } else if (s == "a0") {
+//             Analysis a = Analysis(cs[0], rule);
+//             cout << a.GetFlag() << " " << a.GetPrim() << " " << a.GetKick() << " " << a.GetLen() << " " << a.GetVal() << endl;
+//         } else if (s == "a1") {
+//             Analysis a = Analysis(cs[1], rule);
+//             cout << a.GetFlag() << " " << a.GetPrim() << " " << a.GetKick() << " " << a.GetLen() << " " << a.GetVal() << endl;
+//         } else if (s == "cmp") {
+//             cout << (Analysis(cs[0], rule) > Analysis(cs[1], rule)) << endl;
+//         } else if (s[0] == 'r') {
+//             rule = (Rule)(s[1] - '0');
 //         } else {
-//             break;
+//             for (char c: s) {
+//                 int r;
+//                 if (c >= '2' && i <= '9') r = c - '0';
+//                 if (c == 'X') r = 10;
+//                 if (c == 'J') r = J;
+//                 if (c == 'Q') r = Q;
+//                 if (c == 'K') r = K;
+//                 if (c == 'A') r = A;
+//                 if (c == 'B') r = B;
+//                 if (c == 'R') r = R;
+//                 if (r == B || r == R) {
+//                     cs[i].Insert(joker, r);
+//                 } else {
+//                     cs[i].Insert(suit, r);
+//                 }
+//             }
 //         }
 //     }
 //     return 0;

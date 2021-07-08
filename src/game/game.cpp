@@ -1,3 +1,5 @@
+#define WIN32_LEAN_AND_MEAN
+
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
@@ -17,26 +19,24 @@ using namespace std;
 
 template <int np> void CardGame<np>::notify(ci<np> k, const Message &m) const {
     if (ishuman[k]) {
-        server.SendGameMsg(Package(Header(true, (int)k), m.String()));
+        server.SendGameMsg(Package(Header(true, k), m.String()));
     }
 }
 template <int np> Message CardGame<np>::request(ci<np> k) const {
-    Package p = server.CollectGameMsg((int)k);
+    Package p = server.CollectGameMsg(k);
     if (!p.GetHeader().IsSuccess()) {
         throw k;
     }
     return Message(p.GetData());
 }
+template <int np> void CardGame<np>::broadcast(const Message &m) const {
+    for (int i = 0; i < np; i++) {
+        notify(i, m);
+    }
+}
 template <int np> void CardGame<np>::broadcast(const MsgSeries<np> &ms) const {
     for (int i = 0; i < np; i++) {
         notify(i, ms[i]);
-    }
-}
-template <int np> void CardGame<np>::broadcast(const MsgSeries<np> &ms, array<bool, np> a) const {
-    for (int i = 0; i < np; i++) {
-        if (a[i]) {
-            notify(i, ms[i]);
-        }
     }
 }
 template <int np> void CardGame<np>::disptext(const string &s) const {
@@ -81,12 +81,13 @@ template <int np> void CardGame<np>::Play() {
         Sleep(1000);
         dispscore();
     } catch (ci<np> k) {
-        MsgSeries<np> ms = MsgSeries<np>(Message(m_box));
-        ms.SetPlayer(k);
-        for (int i = 0; i < np; i++) {
-            ms[i].SetExtension("玩家“$" + to_string(ms[i].GetPlayer()) + "”掉线，游戏结束。");
-        }
-        broadcast(ms);
+        Message m(m_box);
+        m.SetExtension(string("玩家“") + server.GetClientNameR(k) + string("”掉线，游戏中止。"));
+        broadcast(m);
+    } catch (exception &e) {
+        Message m(m_box);
+        m.SetExtension(string("游戏主程序出现未知错误，游戏中止。错误信息：\n") + string(e.what()));
+        broadcast(m);
     }
     broadcast(Message(m_end));
 }
@@ -113,7 +114,7 @@ template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
     CardSet c;
     if (this->ishuman[k]) {
         Message m(m_playout, true);
-        m.SetPar(0, (int)(npasses < np - 1));
+        m.SetPar(0, npasses < np - 1);
         m.SetTime(t_playout);
         this->notify(k, m);
         while (true) {
@@ -127,6 +128,8 @@ template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
     } else {
         c = playout_robot(k);
     }
+    tcards.Insert(c);
+    cards[k].Delete(c);
     Message m(m_playout);
     m.SetPar(0, cards[k].GetNumOfCards());
     m.SetCards(c);
@@ -134,8 +137,6 @@ template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
     ms.SetPlayer(k);
     this->broadcast(ms);
     if (c) {
-        tcards.Insert(c);
-        cards[k].Delete(c);
         npasses = 0;
         last = Analysis(c, rule);
         if (last.GetFlag() >= 4) {
@@ -148,7 +149,7 @@ template <int np> void WinnerBasedGame<np>::playout(ci<np> k) {
             }
         }
     } else if(++npasses == np - 1) {
-        last = Analysis();
+        last = {};
     }
 }
 template <int np> WinnerBasedGame<np>::WinnerBasedGame(
@@ -159,11 +160,13 @@ template <int np> WinnerBasedGame<np>::WinnerBasedGame(
 
 void DouDizhuGame::play() {
     changestake(0);
-    last = Analysis();
+    last = {};
     while (!stake) {
         deal(array<int, 3>{17, 17, 17});
+        Sleep(1000);
+        starter = rand();
         npasses = 0;
-        for (ci<3> i = rand(); npasses < 3; i++) {
+        for (ci<3> i = starter; npasses < 3; i++) {
             think(i);
             int s;
             if (ishuman[i]) {
@@ -184,12 +187,12 @@ void DouDizhuGame::play() {
             if (s) {
                 changestake(s);
                 if (s == 3) {
-                    ll = i;
+                    starter = i;
                     break;
                 }
                 npasses = 0;
             } else if (++npasses == 2 && stake) {
-                ll = i + 1;
+                starter = i + 1;
                 break;
             }
         }
@@ -198,37 +201,37 @@ void DouDizhuGame::play() {
     m.SetPar(0, 20);
     m.SetCards(tcards);
     MsgSeries<3> ms(m);
-    ms.SetPlayer((int)ll);
+    ms.SetPlayer(starter);
     broadcast(ms);
-    cards[ll].Insert(tcards);
+    cards[starter].Insert(tcards);
     tcards = CardSet();
     Sleep(1000);
     npasses = 2;
     int sprref = 20;
-    for (ci<3> i = ll; ; i++) {
+    for (ci<3> i = starter; ; i++) {
         playout(i);
         if (sprref == 20) {
-            sprref = cards[ll].GetNumOfCards();
+            sprref = cards[starter].GetNumOfCards();
         }
         if (last.GetFlag() >= 4) {
             changestake(2 * stake);
         }
         if (!cards[i]) {
             if (
-                i == ll &&
+                i == starter &&
                 cards[i + 1].GetNumOfCards() == 17 &&
                 cards[i + 2].GetNumOfCards() == 17
             ||
-                i != ll &&
-                cards[ll].GetNumOfCards() == sprref
+                i != starter &&
+                cards[starter].GetNumOfCards() == sprref
             ) {
                 dispeffect("spring");
                 changestake(2 * stake);
             }
-            int sgn = i == ll? 1: -1;
-            score[ll] = 2 * sgn  * stake;
+            int sgn = i == starter? 1: -1;
+            score[starter] = 2 * sgn  * stake;
             for (int j = 1; j < 3; j++) {
-                score[ll + j] = -sgn  * stake;
+                score[starter + j] = -sgn  * stake;
             }
             break;
         }
@@ -240,11 +243,13 @@ DouDizhuGame::DouDizhuGame(array<bool, 3> ish, Server &s):
 
 void SirenDouDizhuGame::play() {
     changestake(0);
-    last = Analysis();
+    last = {};
     while (!stake) {
         deal(array<int, 4>{25, 25, 25, 25});
-        ci<4> i = rand();
-        for (int j = 0; j < 4; j++, i++) {
+        Sleep(1000);
+        starter = rand();
+        for (int j = 0; j < 4; j++) {
+            ci<4> i(starter + j);
             think(i);
             int s;
             if (ishuman[i]) {
@@ -264,7 +269,7 @@ void SirenDouDizhuGame::play() {
             broadcast(ms);
             if (s) {
                 changestake(s);
-                ll = i;
+                starter = i;
                 if (s == 3) {
                     break;
                 }
@@ -275,22 +280,22 @@ void SirenDouDizhuGame::play() {
     m.SetPar(0, 33);
     m.SetCards(tcards);
     MsgSeries<4> ms(m);
-    ms.SetPlayer((int)ll);
+    ms.SetPlayer(starter);
     broadcast(ms);
-    cards[ll].Insert(tcards);
+    cards[starter].Insert(tcards);
     tcards = CardSet();
     Sleep(1000);
     npasses = 3;
-    for (ci<4> i = ll; ; i++) {
+    for (ci<4> i = starter; ; i++) {
         playout(i);
         if (last.GetFlag() >= 6) {
             changestake(2 * stake);
         }
         if (!cards[i]) {
-            int sgn = i == ll? 1: -1;
-            score[ll] = 3 * sgn * stake;
+            int sgn = i == starter? 1: -1;
+            score[starter] = 3 * sgn * stake;
             for (int j = 1; j < 4; j++) {
-                score[ll + j] = -sgn * stake;
+                score[starter + j] = -sgn * stake;
             }
             break;
         }
@@ -302,12 +307,13 @@ SirenDouDizhuGame::SirenDouDizhuGame(array<bool, 4> ish, Server &s):
 
 void ShuangkouGame::play() {
     changestake(1);
-    last = Analysis();
+    last = {};
     deal(array<int, 4>{27, 27, 27, 27});
-    nleft = 4;
     score.fill(-3);
     npasses = 3;
-    for (ci<4> i = rand(); ; i++) {
+    starter = rand();
+    int nleft = 4;
+    for (ci<4> i = starter; ; i++) {
         if (cards[i]) {
             playout(i);
             int s = last.GetFlag();
@@ -332,7 +338,7 @@ void ShuangkouGame::play() {
                 }
             }
         } else if (++npasses == 3) {
-            last = Analysis();
+            last = {};
         } else if (npasses == 4) {
             i++;
         }
@@ -373,10 +379,9 @@ ShuangkouGame::ShuangkouGame(array<bool, 4> ish, Server &s):
 //     string s;
 //     cin >> s;
 //     if (s == "p") return cs;
-//     for (int i = 0; i < s.size(); i++) {
-//         char c = s[i];
+//     for (char c: s) {
 //         int r;
-//         if (c >= '2' && i <= '9') r = c - '0';
+//         if (c >= '2' && c <= '9') r = c - '0';
 //         if (c == 'X') r = 10;
 //         if (c == 'J') r = J;
 //         if (c == 'Q') r = Q;
@@ -475,19 +480,21 @@ ShuangkouGame::ShuangkouGame(array<bool, 4> ish, Server &s):
 // Package Port::CollectGameMsg(int k) {
 //     return Package(Header(true, -1), reply.String());
 // }
+// const string &Server::GetClientNameR(int k) const {}
 // int main() {
-//     try{
-//         Server s;
-//         n = 3;
-//         DouDizhuGame(array<bool, 3>{true, true, true}, s).Play();
-//         cout << endl;
-//         n = 4;
-//         SirenDouDizhuGame(array<bool, 4>{true, true, true, true}, s).Play();
-//         cout << endl;
-//         ShuangkouGame(array<bool, 4>{true, true, true, true}, s).Play();
-//         cout << endl;
-//     } catch (const char *str) {
-//         cout << str;
-//     }
+//     Server s;
+//     cout << "Dou dizhu" << endl;
+//     n = 3;
+//     DouDizhuGame(array<bool, 3>{true, true, true}, s).Play();
+//     cout << endl;
+//     Sleep(1000);
+//     cout << "Siren Dou dizhu" << endl;
+//     n = 4;
+//     SirenDouDizhuGame(array<bool, 4>{true, true, true, true}, s).Play();
+//     cout << endl;
+//     Sleep(1000);
+//     cout << "Shuangkou" << endl;
+//     ShuangkouGame(array<bool, 4>{true, true, true, true}, s).Play();
+//     cout << endl;
 //     return 0;
 // }

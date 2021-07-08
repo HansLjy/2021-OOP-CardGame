@@ -6,11 +6,17 @@ enum {
 };
 
 enum {
-	singleID_game_select = 2000,
-	singleID_username,
-	singleID_player_number,
-	singleID_confirm,
+	singleID_create = 1500,
+	singleID_join,
 	singleID_back
+};
+
+enum {
+	singleCreateID_game_select = 2000,
+	singleCreateID_username,
+	singleCreateID_player_number,
+	singleCreateID_confirm,
+	singleCreateID_back
 };
 
 enum {

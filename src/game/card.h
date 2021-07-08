@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int
+constexpr int
     heart = 0,
     diamond = 1,
     club = 2,
@@ -13,7 +13,7 @@ const int
     joker = 4
 ;
 
-const int
+constexpr int
     R = 0, // red joker
     A = 1,
     J = 11,
@@ -21,6 +21,8 @@ const int
     K = 13,
     B = 14 // black joker
 ;
+
+constexpr int max_card_set_size = 108;
 
 class Card {
     int id;
@@ -39,8 +41,8 @@ class CardSet {
     char num[54];
     int noc;
 public:
-    CardSet(int n = 0); // returns a set of n full decks, containing 54n cards
-    CardSet(const string &s); // decodes a string encoded by CardSet::String()
+    explicit CardSet(int n = 0); // returns a set of n full decks, containing 54n cards
+    explicit CardSet(const string &s); // decodes a string encoded by CardSet::String()
     int GetNum(const Card &c) const; // returns the number of c's in the set
     int GetNum(int s, int r) const; // returns the number of Card(s, r)'s in the set
     int GetNumOfCards() const; // returns the total number of cards in the set
@@ -60,6 +62,7 @@ public:
     CardSet operator-(const CardSet &s) const; // returns the difference of the set and s
     bool operator==(const CardSet &s) const; // returns whether the set is exactly the same as s
     bool operator!=(const CardSet &s) const; // returns whether the set is different from s
+    bool operator<=(const CardSet &s) const; // returns whether the set is a subset of s
 };
 
 #endif

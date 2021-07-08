@@ -50,6 +50,8 @@ const vector<string>& Client::JoinRoom(
     }
     catch (ceNetEx& e) {
         names.clear();
+		cout<<"client connect failed."<<endl;
+		cout<<e.what()<<endl;
     }
     //if (names.size() == 3) {
     //    names.push_back(names[2]);

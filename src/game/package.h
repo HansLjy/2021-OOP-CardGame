@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int i_server = -1;
+constexpr int i_server = -1;
 
 class Header {
     bool suc;
@@ -23,7 +23,7 @@ class Package {
     Header head;
     string data;
 public:
-    Package(const Header &h, const string &d = string()); // returns a package with h as header and d as payload data
+    Package(const Header &h, const string &d); // returns a package with h as header and d as payload data
     Header GetHeader() const; // returns the header
     string GetData() const; // returns the payload data
     const string &GetDataR() const; // returns the payload data by reference

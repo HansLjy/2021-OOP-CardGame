@@ -1,4 +1,6 @@
+#include <assert.h>
 #include <stdlib.h>
+#include <array>
 #include <string>
 
 #include "card.h"
@@ -6,23 +8,15 @@
 using namespace std;
 
 Card::Card(int i): id(i) {
-    if (i < 0 || i > 53) {
-        throw "Card::Card(int i) - invalid card ID";
-    }
+    assert(i >= 0 && i < 54);
 }
 Card::Card(int s, int r) {
-    if (s < 0 || s > 4) {
-        throw "Card::Card(int s, int r) - invalid suit";
-    }
+    assert(s >= 0 && s < 5);
     if (s == 4) {
-        if (r && r != 14) {
-            throw "Card::Card(int s, int r) - invalid rank";
-        }
+        assert(!r || r == 14);
         id = r? 53: 0;
     } else {
-        if (r < 1 || r > 13) {
-            throw "Card::Card(int s, int r) - invalid rank";
-        }
+        assert(r > 0 && r <= 13);
         id = 13 * s + r;
     }
 }
@@ -46,27 +40,22 @@ int Card::GetRank() const {
 }
 
 CardSet::CardSet(int n): noc(54 * n) {
-    if (n < 0 || n > 127) {
-        throw "CardSet::CardSet(int n) - invalid number of decks";
-    }
+    assert(n >= 0 && n < 128);
     for (int i = 0; i < 54; i++) {
         num[i] = (char)n;
     }
 }
 CardSet::CardSet(const string &s) {
-    if (s.size() != 54) {
-        throw "CardSet::CardSet(const string &s) - invalid length";
-    }
+    assert(s.size() == 54);
     noc = 0;
     for (int i = 0; i < 54; i++) {
-        if ((num[i] = s[i]) < 0) {
-            throw "CardSet::CardSet(const string &s) - invalid value";
-        }
+        assert(s[i] >= 0);
+        num[i] = s[i];
         noc += s[i];
     }
 }
 int CardSet::GetNum(const Card &c) const {
-    return (int)num[c.GetID()];
+    return num[c.GetID()];
 }
 int CardSet::GetNum(int s, int r) const {
     return GetNum(Card(s, r));
@@ -75,9 +64,7 @@ int CardSet::GetNumOfCards() const {
     return noc;
 }
 Card CardSet::GetCard(int k) const {
-    if (k < 0 || k >= noc) {
-        throw "Card CardSet::GetCard(int k) const - invalid index";
-    }
+    assert(k >= 0 && k < noc);
     for (int i = 0; i < 54; i++) {
         k -= num[i];
         if (k < 0) {
@@ -86,9 +73,8 @@ Card CardSet::GetCard(int k) const {
     }
 }
 void CardSet::Insert(const Card &c) {
-    if(num[c.GetID()]++ < 0) {
-        throw "void CardSet::Insert(const Card &c) - overflow";
-    }
+    assert(num[c.GetID()] < 127);
+    num[c.GetID()]++;
     noc++;
 }
 void CardSet::Insert(int s, int r) {
@@ -96,16 +82,14 @@ void CardSet::Insert(int s, int r) {
 }
 void CardSet::Insert(const CardSet &s) {
     for (int i = 0; i < 54; i++) {
-        if ((num[i] += s.GetNum(i)) < 0) {
-            throw "void CardSet::Insert(const CardSet &s) - overflow";
-        }
+        assert(/*(int)*/num[i] + s.num[i] < 128);
+        num[i] += s.num[i];
     }
-    noc += s.GetNumOfCards();
+    noc += s.noc;
 }
 void CardSet::Delete(const Card &c) {
-    if (num[c.GetID()]-- < 0) {
-        throw "void CardSet::Delete(const Card &c) - underflow";
-    }
+    assert(num[c.GetID()]);
+    num[c.GetID()]--;
     noc--;
 }
 void CardSet::Delete(int s, int r) {
@@ -113,17 +97,15 @@ void CardSet::Delete(int s, int r) {
 }
 void CardSet::Delete(const CardSet &s) {
     for (int i = 0; i < 54; i++) {
-        if ((num[i] -= s.GetNum(i)) < 0) {
-            throw "void CardSet::Delete(const CardSet &s) - underflow";
-        }
+        assert(num[i] - s.num[i] >= 0);
+        num[i] -= s.num[i];
     }
-    noc -= s.GetNumOfCards();
+    noc -= s.noc;
 }
 CardSet CardSet::Take(int k) {
-    if (k < 0 || k > noc) {
-        throw "CardSet CardSet::Take(int k) - invalid number of cards";
-    }
-    bool a[noc];
+    assert(k >= 0 && k <= noc);
+    assert(noc <= max_card_set_size);
+    bool a[max_card_set_size];
     if (2 * k < noc) {
         for (int i = 0; i < noc; i++) {
             a[i] = false;
@@ -160,7 +142,7 @@ string CardSet::String() const {
     return string(num, 54);
 }
 CardSet::operator bool() const {
-    return (bool)noc;
+    return noc;
 }
 CardSet CardSet::operator+(const Card &c) const {
     CardSet t = *this;
@@ -195,6 +177,17 @@ bool CardSet::operator==(const CardSet &s) const {
 }
 bool CardSet::operator!=(const CardSet &s) const {
     return !operator==(s);
+}
+bool CardSet::operator<=(const CardSet &s) const {
+    if (noc > s.noc) {
+        return false;
+    }
+    for (int i = 0; i < 54; i++) {
+        if (num[i] > s.num[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 /*

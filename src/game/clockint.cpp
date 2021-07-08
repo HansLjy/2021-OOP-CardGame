@@ -1,15 +1,14 @@
+#include <assert.h>
+
 #include "clockint.h"
 
 template <int m> ci<m>::ci(int x): val(x) {
-    val = x % m;
-    if (val < 0) {
-        val += m;
-    }
+    assert(x >= 0 && x < m);
 }
 template <int m> ci<m>::operator int() const {
     return val;
 }
-template <int m> ci<m> ci<m>::operator++() {
+template <int m> ci<m> &ci<m>::operator++() {
     if (++val == m) {
         val = 0;
     }
@@ -22,7 +21,7 @@ template <int m> ci<m> ci<m>::operator++(int) {
     }
     return r;
 }
-template <int m> ci<m> ci<m>::operator--() {
+template <int m> ci<m> &ci<m>::operator--() {
     if (!val--) {
         val = m - 1;
     }
@@ -35,16 +34,18 @@ template <int m> ci<m> ci<m>::operator--(int) {
     }
     return r;
 }
-template <int m> ci<m> ci<m>::operator+=(int x) {
-    val += x;
-    val %= m;
+template <int m> ci<m> &ci<m>::operator=(int x) {
+    val = x % m;
     if (val < 0) {
         val += m;
     }
     return *this;
 }
-template <int m> ci<m> ci<m>::operator-=(int x) {
-    return *this += -x;
+template <int m> ci<m> &ci<m>::operator+=(int x) {
+    return *this = val + x;
+}
+template <int m> ci<m> &ci<m>::operator-=(int x) {
+    return *this += - x;
 }
 template <int m> ci<m> ci<m>::operator+(int x) const {
     ci<m> r = *this;
@@ -61,7 +62,9 @@ template <int m> ci<m> ci<m>::operator-(int x) const {
 // int main() {
 //     ci<10> a = 1;
 //     cout << a;
-//     cout << ((a = 8) == 8);
+//     cout << ((a = 3) == 3);
+//     cout << (a == 3);
+//     cout << ((a = 678) == 8);
 //     cout << (a == 8);
 //     cout << (++a == 9);
 //     cout << (a == 9);

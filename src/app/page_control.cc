@@ -6,6 +6,7 @@
 enum {
 	kMainMenu = 0,
 	kSingleGameMenu,
+	kSingleGameCreateMenu,
 	kMultiGameMenu,
 	kMultiGameJoinSetting,
 	kMultiGameCreateSetting,
@@ -17,8 +18,11 @@ enum {
 wxBEGIN_EVENT_TABLE(PageController, wxSimplebook)
 	EVT_BUTTON(mainID_play_single, PageController::OnButton)
 	EVT_BUTTON(mainID_play_multi, PageController::OnButton)
-	EVT_BUTTON(singleID_confirm, PageController::OnButton)
+	EVT_BUTTON(singleID_join, PageController::OnButton)
+	EVT_BUTTON(singleID_create, PageController::OnButton)
 	EVT_BUTTON(singleID_back, PageController::OnButton)
+	EVT_BUTTON(singleCreateID_confirm, PageController::OnButton)
+	EVT_BUTTON(singleCreateID_back, PageController::OnButton)
 	EVT_BUTTON(multiID_join_game, PageController::OnButton)
 	EVT_BUTTON(multiID_create_game, PageController::OnButton)
 	EVT_BUTTON(multiID_back, PageController::OnButton)
@@ -29,9 +33,9 @@ wxBEGIN_EVENT_TABLE(PageController, wxSimplebook)
 	EVT_BUTTON(overID_back, PageController::OnButton)
 	EVT_BUTTON(wxID_EXIT, PageController::OnQuit)
 	EVT_COMMAND(eventID_join_success, JoinSuccessEvent, PageController::OnJoinSuccess)
-	EVT_COMMAND(eventID_join_fail, JoinSuccessEvent, PageController::OnJoinFail)
-	EVT_COMMAND(eventID_create_success, JoinSuccessEvent, PageController::OnCreateSuccess)
-	EVT_COMMAND(eventID_create_fail, JoinSuccessEvent, PageController::OnJoinFail)
+	EVT_COMMAND(eventID_join_fail, JoinFailEvent, PageController::OnJoinFail)
+	EVT_COMMAND(eventID_create_success, CreateSuccessEvent, PageController::OnCreateSuccess)
+	EVT_COMMAND(eventID_create_fail, CreateFailEvent, PageController::OnCreateFail)
 wxEND_EVENT_TABLE()
 
 PageController::PageController(wxWindow* p_parent)
@@ -41,6 +45,9 @@ PageController::PageController(wxWindow* p_parent)
 
 	single_game_menu = new SingleGameMenu(this);
 	AddPage(single_game_menu, wxT("Single Game Menu"));
+
+	single_game_create_menu = new SingleGameCreateMenu(this);
+	AddPage(single_game_create_menu, wxT("Single Game Menu"));
 
 	multi_game_menu = new MultiGameMenu(this);
 	AddPage(multi_game_menu, wxT("Multi Game Menu"));
@@ -75,13 +82,22 @@ void PageController::OnButton(wxCommandEvent& event) {
 		case mainID_play_multi:
 			ChangeSelection(kMultiGameMenu);
 			break;
-		case singleID_confirm:
-			// 单人游戏
-			ChangeSelection(kGameInterface);
-			game_interface->StartGame(client);
+		case singleID_join:
+			app_status.IP_address = "127.0.0.1";
+			JoinGame();
+			break;
+		case singleID_create:
+			ChangeSelection(kSingleGameCreateMenu);
 			break;
 		case singleID_back:
 			ChangeSelection(kMainMenu);
+			break;
+		case singleCreateID_confirm:
+			// 单人游戏
+			CreateAndJoinGame();
+			break;
+		case singleCreateID_back:
+			ChangeSelection(kSingleGameMenu);
 			break;
 		case multiID_join_game:
 			ChangeSelection(kMultiGameJoinSetting);
@@ -122,26 +138,32 @@ void PageController::OnButton(wxCommandEvent& event) {
 #include "pages.h"
 #include <thread>
 
-void GameThread(Client &client);
-void CreateGameAndJoinThread (AppStatus &status, GameLauncher& launcher, Client& client);
-void JoinGameThread (AppStatus &status, Client& client);
+void GameThread(Client &client, GameInterface *game_interface);
+void CreateGameAndJoinThread (AppStatus &status, GameLauncher& launcher, Client& client, PageController* controller);
+void JoinGameThread (AppStatus &status, Client& client, PageController *controller);
 
 void PageController::OnJoinSuccess(wxCommandEvent& event) {
+	std::cerr << "Join Success" << std::endl;
+	std::cerr << event.GetString() << std::endl;
+	game_pending->StopPending();
 	game_interface->StartGame(client);
 	ChangeSelection(kGameInterface);
 }
 
 void PageController::OnJoinFail(wxCommandEvent& event) {
+	game_pending->StopPending();
 	wxMessageBox(wxT("加入游戏失败！连接超时！"));
 	ChangeSelection(kMainMenu);
 }
 
 void PageController::OnCreateSuccess(wxCommandEvent& event) {
-	game_interface->StartGame(client);
-	ChangeSelection(kGameInterface);
+	std::cerr << "Create Success" << std::endl;
+	game_pending->StartPending(GamePending::Status::kJoining);
 }
 
 void PageController::OnCreateFail(wxCommandEvent& event) {
+	std::cerr << "Create Fail" << std::endl;
+	game_pending->StopPending();
 	wxMessageBox(wxT("创建房间失败！"));
 	ChangeSelection(kMainMenu);
 }
@@ -149,7 +171,7 @@ void PageController::OnCreateFail(wxCommandEvent& event) {
 void PageController::CreateAndJoinGame() {
 	game_pending->StartPending(GamePending::Status::kWaiting);
 	ChangeSelection(kGamePending);
-	std::thread t(CreateGameAndJoinThread, std::ref(app_status), std::ref(game_launcher), std::ref(client));
+	std::thread t(CreateGameAndJoinThread, std::ref(app_status), std::ref(game_launcher), std::ref(client), this);
 	t.detach();
 }
 
@@ -157,7 +179,6 @@ void PageController::JoinGame() {
 	game_pending->StartPending(GamePending::Status::kJoining);
 	ChangeSelection(kGamePending);
 
-	// Below should be changed into multi-threaded version
-	std::thread t(JoinGameThread, std::ref(app_status), std::ref(client));
+	std::thread t(JoinGameThread, std::ref(app_status), std::ref(client), this);
 	t.detach();
 }

@@ -34,6 +34,7 @@ private:
     //...
     int humans;
     int robots;
+    int ready;
 
     struct index_info {
         Server* s;
@@ -62,7 +63,7 @@ private:
     int BufClear(int index);
     int CloseRoom();
     SOCKET getSock(int i)const{ 
-        if (Member_Sock[PlayerSortedSock[i]]) {
+        if (PlayerSortedSock[i]==0) {
             throw ceNullSocket();
         }
         return Member_Sock[PlayerSortedSock[i]]; 

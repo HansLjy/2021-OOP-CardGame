@@ -11,9 +11,8 @@
 #include "rule.h"
 #include "message.h"
 #include "package.h"
-#include "port.h"
 
-const int t_bid = 10, t_playout = 20;
+constexpr int t_bid = 10, t_playout = 20;
 
 using namespace std;
 
@@ -25,8 +24,8 @@ protected:
     array<int, np> score;
     void notify(ci<np> k, const Message &m) const; // notify the kth player of m
     Message request(ci<np> k) const;
+    void broadcast(const Message &m) const;
     void broadcast(const MsgSeries<np> &ms) const;
-    void broadcast(const MsgSeries<np> &ms, array<bool, np> a) const; // sends m[i] when a[i]
     void disptext(const string &s) const;
     void dispeffect(const string &s) const; // global effect
     void dispeffect(ci<np> k, const string &s) const; // player effect
@@ -34,7 +33,7 @@ protected:
     void think(ci<np> k) const; // the kth player is thinking
     virtual void play() = 0;
 public:
-    CardGame(array<bool, np> ish, Server &s, const CardSet &c); // returns a card game with "is human" list ish and server s
+    explicit CardGame(array<bool, np> ish, Server &s, const CardSet &c); // returns a card game with "is human" list ish and server s
     void Play();
 };
 template class CardGame<3>;
@@ -46,40 +45,38 @@ protected:
     int stake;
     CardSet tcards; // cards on the table
     array<CardSet, np> cards; // cards on each player's hand
+    ci<np> starter; // the first to bid or play out
     int npasses; // number of successive passes
     Analysis last; // analysis of the last non-pass hand
     void deal(array<int, np> noc); // the ith player gets noc[i] cards
     void changestake(int s);
-    virtual CardSet playout_robot(ci<np> k);
+    virtual CardSet playout_robot(ci<np> k) const;
     void playout(ci<np> k);
     virtual void play() = 0;
 public:
-    WinnerBasedGame(array<bool, np> ish, Server &s, const CardSet &c, const Rule r);
+    explicit WinnerBasedGame(array<bool, np> ish, Server &s, const CardSet &c, const Rule r);
 };
 template class WinnerBasedGame<3>;
 template class WinnerBasedGame<4>;
 
 class DouDizhuGame: public WinnerBasedGame<3> {
-    ci<3> ll; // index of the landlord
-    int bid_robot(ci<3> k);
+    int bid_robot(ci<3> k) const;
     void play();
 public:
-    DouDizhuGame(array<bool, 3> ish, Server &s);
+    explicit DouDizhuGame(array<bool, 3> ish, Server &s);
 };
 
 class SirenDouDizhuGame: public WinnerBasedGame<4> {
-    ci<4> ll;
-    int bid_robot(ci<4> k);
+    int bid_robot(ci<4> k) const;
     void play();
 public:
-    SirenDouDizhuGame(array<bool, 4> ish, Server &s);
+    explicit SirenDouDizhuGame(array<bool, 4> ish, Server &s);
 };
 
 class ShuangkouGame: public WinnerBasedGame<4> {
-    int nleft; // number of players who still have cards
     void play();
 public:
-    ShuangkouGame(array<bool, 4> ish, Server &s);
+    explicit ShuangkouGame(array<bool, 4> ish, Server &s);
 };
 
 #endif

@@ -338,6 +338,7 @@ int Server:: OpenRoom(GameType gt, int humans, int robots){
         cout << e.what();
         return 1;
     }
+	cout<<"room opened"<<endl;
     return 0;
 }
 

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string>
 #include <array>
 
@@ -15,8 +16,8 @@ Message::Message(MsgType t, bool b):
     ext(string())
 {}
 Message::Message(const string &s):
-    type((MsgType)s[0]),
-    isr((bool)s[1]),
+    type((assert(s.size() >= 64), (MsgType)s[0])),
+    isr(s[1]),
     spar(string(s, 2, 8)),
     scard(string(s, 10, 54)),
     ext(string(s, 64))
@@ -28,10 +29,8 @@ bool Message::IsRequest() const {
     return isr;
 }
 int Message::GetPar(int k) const {
-    if (k < 0 || k >= 8) {
-        throw "int Message::GetPar(int k) const - invalid index";
-    }
-    return (int)spar[k];
+    assert(k >= 0 && k < 8);
+    return spar[k];
 }
 int Message::GetPlayer() const {
     return GetPar(7);
@@ -55,12 +54,9 @@ void Message::SetIsRequest(bool b) {
     isr = b;
 }
 void Message::SetPar(int k, int v) {
-    if (k < 0 || k >= 8) {
-        throw "void Message::SetPar(int k, int v) - invalid index";
-    }
-    if ((spar[k] = (char)v) != v) {
-        throw "void Message::SetPar(int k, int v) - invalid value";
-    }
+    assert(k >= 0 && k < 8);
+    assert((char)v == v);
+    spar[k] = (char)v;
 }
 void Message::SetPlayer(int p) {
     SetPar(7, p);
@@ -75,7 +71,7 @@ void Message::SetExtension(const string &s) {
     ext = s;
 }
 string Message::String() const {
-    return string(1, (char)type) + string(1, (char)isr) + spar + scard + ext;
+    return string({(char)type, (char)isr}) + spar + scard + ext;
 }
 
 template <int np> MsgSeries<np>::MsgSeries(const Message &m) {
@@ -93,9 +89,8 @@ template <int np> void MsgSeries<np>::SetPar(int k, ci<np> v) {
 }
 template <int np> void MsgSeries<np>::SetPars(int k, array<int, np> a) {
     for (int i = 0; i < np; i++) {
-        ci<np> i0 = i;
-        for (int j = k; j < k + np; j++, i0++) {
-            this->at(i).SetPar(j, a[i0]);
+        for (int j = 0; j < np; j++) {
+            this->at(i).SetPar(k + j, a[ci<np>(i) + j]);
         }
     }
 }
@@ -160,8 +155,8 @@ template <int np> void MsgSeries<np>::SetCards(const array<CardSet, np> &a) {
 //         ms[0].GetPar(3) == 4 &&
 //         ms[1].GetPar() == 2 &&
 //         ms[1].GetPar(1) == 3 &&
-//         ms[1].GetPar(2) == 4 &&
-//         ms[1].GetPar(3) == 1
+//         ms[2].GetPar() == 3 &&
+//         ms[2].GetPar(1) == 4
 //     );
 //     ms.SetPlayer(ci<4>(0));
 //     cout << (
