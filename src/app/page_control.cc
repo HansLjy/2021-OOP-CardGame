@@ -142,9 +142,12 @@ void GameThread(Client &client, GameInterface *game_interface);
 void CreateGameAndJoinThread (AppStatus &status, GameLauncher& launcher, Client& client, PageController* controller);
 void JoinGameThread (AppStatus &status, Client& client, PageController *controller);
 
+Client* PageController::GetClient() {
+	return &client;
+}
+
 void PageController::OnJoinSuccess(wxCommandEvent& event) {
 	std::cerr << "Join Success" << std::endl;
-	std::cerr << event.GetString() << std::endl;
 	game_pending->StopPending();
 	game_interface->StartGame(client);
 	ChangeSelection(kGameInterface);

@@ -14,7 +14,7 @@ const vector<string>& Client::JoinRoom(
 	WSADATA wsaData;
 
     GameMessage gm;
-    Package pkg(Header(0, 0));
+    Package pkg(Header(0, 0),"");
     int loop_flag = true;
 
     try {
@@ -50,8 +50,6 @@ const vector<string>& Client::JoinRoom(
     }
     catch (ceNetEx& e) {
         names.clear();
-		cout<<"client connect failed."<<endl;
-		cout<<e.what()<<endl;
     }
     //if (names.size() == 3) {
     //    names.push_back(names[2]);
@@ -63,7 +61,7 @@ int Client::QuitRoom() {
     if (serv_Sock) {
         SendSignal(ConnMsg::MSG_WANT_CLOSE, serv_Sock);
         GameMessage gm;
-        Package pkg(Header(0, 0));
+        Package pkg(Header(0, 0),"");
         try {
             while (read_msg(serv_Sock, gm, pkg)
                 != ConnMsg::MSG_GRANT_CLOSE);
@@ -93,14 +91,14 @@ void Client::SendGameMsg(const Package & p){
 
 Package Client::CollectGameMsg(int sender){
     GameMessage gm;
-    Package pkg(Header(0,0));
+    Package pkg(Header(0,0),"");
     if (!error) {
         try {
             while (read_msg(serv_Sock, gm, pkg)
                 != ConnMsg::MSG_PAKAGE);
         }
         catch (ceReadInt& e) {
-            pkg = Package(Header(0, 0));
+            pkg = Package(Header(0, 0),"");
             error = 1;
         }
     }

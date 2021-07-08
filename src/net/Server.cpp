@@ -18,7 +18,8 @@ void Server::SendGameMsg(const Package& p) {
 }
 
 const string& Server::GetClientNameR(int k) const {
-    if (k >= names.size() || k < 0) return string();
+    static string tmp;
+    if (k >= names.size() || k < 0) return tmp;
     return names[k];
 }
 
@@ -26,7 +27,7 @@ Package Server::CollectGameMsg(int sender) {
     HANDLE hThread;
     unsigned threadID;
     index_info Info;
-    Package pkg(Header(0, i_server));
+    Package pkg(Header(0, i_server),"");
 
     int microsecond = INFINITE;
     int index = PlayerSortedSock[sender];
@@ -53,7 +54,7 @@ Package Server::CollectGameMsg(int sender) {
         }
     }
     catch (logic_error& e) {
-        pkg = Package(Header(0, 0));
+        pkg = Package(Header(0, 0),"");
     }
     return pkg;
 }
@@ -233,7 +234,7 @@ int Server::handle_accept(){
 
 int Server::handle_read(int index){
     GameMessage msg;
-    Package pkg(Header(false, i_server));
+    Package pkg(Header(false, i_server),"");
     int i;
     try {
         switch (read_msg(Member_Sock[index], msg, pkg)) {
@@ -268,6 +269,7 @@ int Server::handle_read(int index){
                         );
                     }
                 }
+                ready = 1;
             }
             break;
         case ConnMsg::MSG_WANT_CLOSE:
@@ -291,6 +293,7 @@ int Server:: OpenRoom(GameType gt, int humans, int robots){
 
     if(state!= GamePort::GAME_OVER||error) return 1;//false
     state= GamePort::GAME_OPEN;
+    ready = 0;
 
     try {
         game_t = gt;
@@ -338,13 +341,14 @@ int Server:: OpenRoom(GameType gt, int humans, int robots){
         cout << e.what();
         return 1;
     }
-	cout<<"room opened"<<endl;
+    //while (!ready);
     return 0;
 }
 
 int Server:: CloseRoom(){
     if(state==GamePort::GAME_OVER) return 0;
     state=GamePort::GAME_OVER;
+    ready = 0;
     // tell client to quit
     closesocket(Member_Sock[0]);
     WSACloseEvent(Member_Event[0]);
@@ -358,7 +362,8 @@ Server::Server():
     num_Members(0),
     humans(0),
     robots(0),
-    num_Players(0)
+    num_Players(0),
+    ready(0)
 {
     int i;
     for(i=0;i<MAX_PLAYERS;i++){

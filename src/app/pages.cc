@@ -343,17 +343,36 @@ wxBEGIN_EVENT_TABLE(GameOver, wxPanel)
 wxEND_EVENT_TABLE()
 
 GameOver::GameOver(wxWindow *p_parent) : wxPanel(p_parent), p_parent(p_parent) {
-	go_back = new MyButton(this, overID_back, wxT("返回主菜单"));
 	title = new MyLabel(this, wxID_ANY, wxT("游戏结束！"));
-	winner_label = new MyLabel(this, wxID_ANY, wxT("获胜的玩家是："));
+	score_label[0] = new MyLabel(this, wxID_ANY, "");
+	score_label[1] = new MyLabel(this, wxID_ANY, "");
+	score_label[2] = new MyLabel(this, wxID_ANY, "");
+	score_label[3] = new MyLabel(this, wxID_ANY, "");
+	go_back = new MyButton(this, overID_back, wxT("返回主菜单"));
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
 	sizer->AddWidget(title, true);
-	sizer->AddWidget(winner_label, true);
+	sizer->AddWidget(score_label[0], true);
+	sizer->AddWidget(score_label[1], true);
+	sizer->AddWidget(score_label[2], true);
+	sizer->AddWidget(score_label[3], true);
 	sizer->AddWidget(go_back, true);
 	sizer->Create();
 
 	SetSizer(sizer);
+}
+
+void GameOver::Render() {
+	for (int i = 0; i < 4; i++) {
+		if (i < num_player) {
+			wxString label_text;
+			label_text << user_name[i] << ": " << score[i];
+			score_label[i]->SetLabelText(label_text);
+			score_label[i]->Show();
+		} else {
+			score_label[i]->Hide();
+		}
+	}
 }
 
 void GameOver::OnReturn(wxCommandEvent &event) {
@@ -361,16 +380,24 @@ void GameOver::OnReturn(wxCommandEvent &event) {
 	event.Skip();
 }
 
-void GameOver::SetWinner() {
-	get_controller(control);
-	winner_label->SetLabelText(wxT("获胜的玩家是：") + control->app_status.winner);
+void GameOver::SetScore(std::string user_name[], int score[], int num_player) {
+	this->num_player = num_player;
+	for (int i = 0; i < 4; i++) {
+		this->user_name[i] = user_name[i];
+		this->score[i] = score[i];
+	}
 }
 
 wxBEGIN_EVENT_TABLE(GameInterface, wxPanel)
 	EVT_BUTTON(gameID_deal, GameInterface::OnDeal)
 	EVT_BUTTON(gameID_pass, GameInterface::OnPass)
 	EVT_TIMER(gameID_count_down, GameInterface::OnTimer)
+	EVT_BUTTON(gameID_auction0, GameInterface::OnBid)
+	EVT_BUTTON(gameID_auction1, GameInterface::OnBid)
+	EVT_BUTTON(gameID_auction2, GameInterface::OnBid)
+	EVT_BUTTON(gameID_auction3, GameInterface::OnBid)
 	EVT_COMMAND(eventID_refresh, RefreshEvent, GameInterface::OnRefresh)
+	EVT_COMMAND(eventID_game_over, GameOverEvent, GameInterface::OnGameOver)
 wxEND_EVENT_TABLE()
 
 #include <thread>
@@ -380,6 +407,7 @@ wxEND_EVENT_TABLE()
 namespace GameStatus {
 	atomic<int> num_players;			// 玩家的数量
 	atomic<int> num_cards[4];			// 牌的数量
+	atomic<int> landlord;				// 地主
 	atomic<int> stake;					// 倍数
 	atomic<int> count_down;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
 	atomic<int> smallest_bid;			// 最小初始分
@@ -395,6 +423,29 @@ namespace GameStatus {
 	CardSet last_round_card[4];	// 上一轮的牌
 	string user_name[4];		// 用户名
 	string info;
+
+	void dump () {
+		cerr << "================= dump of status begin =================" << endl;
+		cerr << "number of players: " << num_players << endl;
+		cerr << "number of cards: " << num_cards[0] << " " << num_cards[1] << " "
+			 << num_cards[2] << " " << num_cards[3] << endl;
+		cerr << "landlord: " << landlord << endl;
+		cerr << "stake: " << stake << endl;
+		cerr << "count down: " << count_down << endl;
+		cerr << "smallest bid: " << smallest_bid << endl;
+		cerr << "largest bid: " << largest_bid << endl;
+
+		cerr << "is auction? " << boolalpha << is_auction << endl;
+		cerr << "is counting down? " << boolalpha << is_counting_down << endl;
+		cerr << "stake: " << stake << endl;
+		cerr << "show stake? " << boolalpha << show_stake << endl;
+		cerr << "show count down? " << boolalpha << show_count_down << endl;
+		cerr << "is my turn? " << boolalpha << is_my_turn << endl;
+		cerr << "User names: ";
+		for (int i = 0; i < 4; i++)
+			cerr << user_name[i] << " " << endl;
+		cerr << "========================================================" << endl;
+	}
 }
 
 GameInterface::GameInterface(wxWindow *p_parent)
@@ -500,23 +551,34 @@ CardSet getCardSet(int n) {
 void JoinGameThread (AppStatus &status, Client& client, PageController *controller) {
 	using namespace GameStatus;
 	GameConn::GameType game_type;
-	switch (status.game_type) {
+	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
+	switch (game_type) {
 		case kLandlord3:
-			game_type = GameConn::Landlords_3;
+			num_players.store(3);
 			break;
 		case kLandlord4:
-			game_type = GameConn::Landlords_4;
+			num_players.store(4);
 			break;
+		default:
+			cerr << "What the hack is this shit?" << endl;
 	}
-	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
 	if (new_user_name.size() == 0) { // 连接超时，异常
 		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
 		controller->GetEventHandler()->QueueEvent(join_fail);
 		return;
 	}
 	// 设置用户名
-	for (int i = 0; i < 4; i++) {
-		user_name[i] = new_user_name[i];
+	switch(num_players.load()) {
+		case 4:
+			for (int i = 0; i < 4; i++) {
+				user_name[i] = new_user_name[i];
+			}
+			break;
+		case 3:
+			user_name[0] = new_user_name[0];
+			user_name[1] = new_user_name[1];
+			user_name[2] = new_user_name[3];
+			break;
 	}
 	wxCommandEvent *join_success = new wxCommandEvent(JoinSuccessEvent, eventID_join_success);
 	controller->GetEventHandler()->QueueEvent(join_success);
@@ -524,7 +586,6 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 
 void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client& client, PageController* controller) {
 	std::cerr << "Create Game And Join" << std::endl;
-	std::cerr << status.player_number;
 	using namespace GameStatus;
 	bool create_success = false;
 	switch (status.game_type) {
@@ -547,38 +608,46 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 		controller->GetEventHandler()->QueueEvent(fail);
 	}
 	GameConn::GameType game_type;
-	switch (status.game_type) {
+	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
+	switch (game_type) {
 		case kLandlord3:
-			game_type = GameConn::Landlords_3;
+			num_players.store(3);
 			break;
 		case kLandlord4:
-			game_type = GameConn::Landlords_4;
+			num_players.store(4);
 			break;
+		default:
+			cerr << "What the hack is this shit?" << endl;
 	}
-	std::cerr << status.IP_address << " " << status.user_name << std::endl;
-	auto new_user_name = client.JoinRoom(status.IP_address, status.user_name.ToStdString(), game_type);
 	if (new_user_name.size() == 0) { // 连接超时，异常
-		std::cerr << "Join Fail" << std::endl;
 		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
 		controller->GetEventHandler()->QueueEvent(join_fail);
 		return;
 	}
+	for (auto name : new_user_name) {
+		cerr << name << endl;
+	}
 	// 设置用户名
-	switch(status.game_type) {
-		case kLandlord3:
-			user_name[0] = new_user_name[0];
-			user_name[1] = new_user_name[1];
-			user_name[3] = new_user_name[2];
-			break;
-		case kLandlord4:
-			for (int i = 0; i < 4; i++) {
-				user_name[i] = new_user_name[i];
-			}
-			break;
+	
+	for (int i = 0; i < num_players.load(); i++) {
+		user_name[i] = new_user_name[i];
 	}
 	wxCommandEvent join_success(JoinSuccessEvent, eventID_join_success);
 	controller->GetEventHandler()->QueueEvent(join_success.Clone());
 	std::cerr << "Join Success" << std::endl;
+}
+
+// 游戏结束时设置游戏结束时界面的参数
+void GameOverSetting(Message message, GameInterface *game_interface) {
+	using namespace GameStatus;
+	auto control = static_cast<PageController *>(game_interface->p_parent);
+	int score[4];
+
+	for (int i = 0; i < num_players; i++) {
+		score[i] = message.GetPar(i);
+	}
+
+	control->game_over->SetScore(user_name, score, num_players);
 }
 
 void GameThread(Client &client, GameInterface *game_interface) {
@@ -597,10 +666,67 @@ void GameThread(Client &client, GameInterface *game_interface) {
 		auto message = Message(package.GetData());
 		wxCommandEvent *denied;
 		switch (message.GetType()) {
+			case m_empty:
+				std::cerr << "m_empty" << std::endl;
+				break;
+			case m_start:
+				std::cerr << "m_start" << std::endl;
+				break;
 			case m_end:
+				std::cerr << "m_end" << std::endl;
 				end_loop = true;
 				break;
+			case m_box:
+				std::cerr << "m_dispbox" << std::endl;
+				// TODO
+				break;
+			case m_disptext:
+				std::cerr << "m_disptext" << std::endl;
+				// TODO
+				break;
+			case m_dispeffect:
+				std::cerr << "m_dispeffect" << std::endl;
+				// TODO
+				break;
+			case m_dispscore:
+				std::cerr << "m_dispscore" << std::endl;
+				GameOverSetting(message, game_interface);
+				break;
+			case m_think:
+				std::cerr << "m_think" << std::endl;
+				break;
+			case m_deal:
+				std::cerr << "m_deal" << std::endl;
+				for (int i = 0; i < num_players; i++) {
+					num_cards[i] = message.GetPar(i);
+				}
+				my_cards = message.GetCards();
+				break;
+			case m_bid:
+				std::cerr << "m_bid" << std::endl;
+				if (message.IsRequest()) {
+					is_auction.store(true);
+					smallest_bid.store(message.GetPar(1));
+					largest_bid.store(message.GetPar(2));
+					count_down.store(message.GetTime());
+				} else {
+					is_auction.store(false);
+					// TODO
+				}
+				break;
+			case m_changestake:
+				std::cerr << "m_changestake" << std::endl;
+				stake.store(message.GetPar());
+				break;
+			case m_setlandlord:
+				std::cerr << "m_setlandlord" << std::endl;
+				landlord.store(message.GetPar());
+				num_cards[message.GetPlayer()].store(message.GetPar());
+				last_round_card[message.GetPlayer()] = message.GetCards();
+				break;
+				
 			case m_playout:
+				std::cerr << "m_playout" << std::endl;
 				if (message.IsRequest()) {
 					// 需要出牌
 					is_counting_down.store(true);
@@ -612,15 +738,12 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				}
 				break;
 			case m_deny:
+				std::cerr << "m_deny" << std::endl;
 				denied = new wxCommandEvent(DeniedEvent, eventID_denied);
 				game_interface->GetEventHandler()->QueueEvent(denied);
 				break;
-			case m_changestake:
-				stake.store(message.GetPar());
-				break;
-			case m_setlandlord:
-				num_cards[message.GetPlayer()].store(message.GetPar());
-				last_round_card[message.GetPlayer()] = message.GetCards();
+			default:
+				std::cerr << "m_other" << std::endl;
 				break;
 		}
 		if (end_loop) {
@@ -650,6 +773,8 @@ void GameInterface::StartGame(Client &client) {
 // 根据当前的状态来渲染房间
 void GameInterface::Render() {
 	using namespace GameStatus;
+	dump();
+
 	deck[0]->SetDeck(my_cards);
 	last_round[0]->SetDeck(last_round_card[0]);
 	user_info[0]->SetLabelText(user_name[0]);
@@ -661,6 +786,7 @@ void GameInterface::Render() {
 	user_info[1]->Show();
 
 	if (num_players.load() == 3) {
+		cerr << "3 players " << endl;
 		deck[2]->SetDeck(CardSet(0));
 		last_round[2]->SetDeck(CardSet(0));
 		user_info[2]->Hide();
@@ -670,6 +796,7 @@ void GameInterface::Render() {
 		user_info[3]->SetLabelText(user_name[2]);
 		user_info[3]->Show();
 	} else if (num_players.load() == 4) {
+		cerr << "4 players " << endl;
 		deck[2]->SetDeck(getCardSet(num_cards[2].load()));
 		last_round[2]->SetDeck(last_round_card[2]);
 		user_info[2]->SetLabelText(user_name[2]);
@@ -751,6 +878,24 @@ void GameInterface::OnDeal(wxCommandEvent &event) {
 	std::cerr << "Dealt!" << std::endl;
 }
 
+void GameInterface::OnBid(wxCommandEvent &event) {
+	int my_bid = 0;
+	switch(event.GetId()) {
+		case gameID_auction0:
+			my_bid = 0;
+			break;
+		case gameID_auction1:
+			my_bid = 1;
+			break;
+		case gameID_auction2:
+			my_bid = 2;
+			break;
+		case gameID_auction3:
+			my_bid = 3;
+			break;
+	}
+}
+
 void GameInterface::OnPass(wxCommandEvent &event) {
 	std::cerr << "Pass!" << std::endl;
 }
@@ -769,4 +914,9 @@ void GameInterface::OnTimer(wxTimerEvent &event) {
 	static char time_string[10];
 	itoa(count_down, time_string, 10);
 	timer_label->SetLabel(wxT("回合剩余时间：") + wxString(time_string) + wxString("s"));
+}
+
+void GameInterface::OnGameOver(wxCommandEvent &event) {
+	std::cerr << "Game Over!";
+	event.Skip();
 }

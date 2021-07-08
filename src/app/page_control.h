@@ -28,7 +28,6 @@ struct AppStatus {
 	wxString user_name;
 	wxString IP_address;
 	wxString passwd;
-	wxString winner;
 	int player_number;
 };
 
@@ -60,6 +59,7 @@ public:
 
 	void JoinGame();
 	void CreateAndJoinGame();
+	Client *GetClient();
 
 	wxDECLARE_EVENT_TABLE();
 

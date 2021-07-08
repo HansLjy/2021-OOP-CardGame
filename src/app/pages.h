@@ -156,23 +156,27 @@ public:
 
 class GameOver : public wxPanel {
 	wxWindow	*p_parent;
-	wxButton	*go_back;
-	MyLabel		*winner_label;
+
 	MyLabel		*title;
+	MyLabel		*score_label[4];
+	wxButton	*go_back;
 
 public:
-	GameOver () = delete;
-	GameOver (wxWindow *p_parent);	
+	std::string	user_name[4];
+	int			score[4];
+	int			num_player;
 
-	void SetWinner();
+	GameOver () = delete;
+	GameOver (wxWindow *p_parent);
+
+	void Render();
+	void SetScore(std::string user_name[], int score[], int num_player);
 	void OnReturn(wxCommandEvent &event);
 	wxDECLARE_EVENT_TABLE();
 };
 
 class GameInterface : public wxPanel {
 public:
-	// Status
-	
 	GameInterface () = delete;
 	GameInterface (wxWindow* p_parent);
 
@@ -193,10 +197,12 @@ public:
 
 	void OnDenied(wxCommandEvent &event);
 	void OnLogOut(wxCommandEvent &event);
+	void OnBid(wxCommandEvent &event);
 	void OnDeal(wxCommandEvent &event);
 	void OnPass(wxCommandEvent &event);
 	void OnTimer(wxTimerEvent &event);
 	void OnRefresh(wxCommandEvent &event);
+	void OnGameOver(wxCommandEvent &event);
 	void Render();
 
 	wxDECLARE_EVENT_TABLE();

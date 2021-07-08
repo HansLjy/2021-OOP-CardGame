@@ -21,6 +21,7 @@ private:
     Server s;
     void setGame();
     void clearGame();
+    static unsigned WINAPI thread_main(void* LPgamelauncher);
 };
 
 #endif

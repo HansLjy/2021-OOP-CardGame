@@ -7,13 +7,33 @@ int GameLauncher::OpenRoom(
 	int humans,
 	int robots
 ){
+    HANDLE hThread;
+    unsigned int threadID;
+
     if (game_ptr) clearGame();
     try {
-        setGame();
-        return s.OpenRoom(gt, humans, robots);
+        if (s.OpenRoom(gt, humans, robots)) return 1;
+
+        hThread = (HANDLE)_beginthreadex(
+            NULL,
+            0,
+            thread_main,
+            (void*)this,
+            0,
+            &threadID
+        );
     }
     catch (...) { return 1; }
+    return 0;
 }
+
+unsigned WINAPI GameLauncher::thread_main(void* LPgamelauncher) {
+    GameLauncher* self = reinterpret_cast<GameLauncher*>(LPgamelauncher);
+    while (!self->s.isReady()) {}
+    self->setGame();
+    return self->StartGame();
+}
+
 
 void GameLauncher::setGame() {
     array<bool, 3> human1_robot0_3;

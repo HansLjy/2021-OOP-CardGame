@@ -30,6 +30,7 @@ public:
     PortState getState()const { return state; }
     void setState(PortState state) { this->state = state; }
     int isError()const { return error; }
+    int isReady()const { return ready; }
 private:
     //...
     int humans;
