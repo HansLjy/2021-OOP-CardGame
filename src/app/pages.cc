@@ -870,6 +870,7 @@ void GameInterface::Render() {
 	}
 
 	if (is_auction.load()) {
+		call_auction[0]->Show();
 		for (int i = smallest_bid.load(); i <= largest_bid.load(); i++) {
 			call_auction[i]->Show();
 		}
@@ -897,14 +898,17 @@ void GameInterface::OnLogOut(wxCommandEvent &event) {
 
 void GameInterface::OnDeal(wxCommandEvent &event) {
 	CardSet draw_card = deck[0]->GetDrawnDeck();
+	for (int i = 0; i < draw_card.GetNumOfCards(); i++) {
+		cerr << draw_card.GetCard(i).GetID() << " ";
+	}
 
 	get_controller(control);
-	Client &client = control->client;
+	auto client = control->GetClient();
 	Message new_message;
 	new_message.SetCards(draw_card);
 
-	Package new_package(Header(1, 0), new_message.String());
-	client.SendGameMsg(new_package);
+	Package new_package(Header(1, i_server), new_message.String());
+	client->SendGameMsg(new_package);
 
 	std::cerr << "Dealt!" << std::endl;
 }
