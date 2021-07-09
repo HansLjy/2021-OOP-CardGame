@@ -3,9 +3,10 @@
 #include "wx/dcclient.h"
 #include "global.h"
 #include <iostream>
+#define show_card(card_set) for (int i = 0; i < card_set.GetNumOfCards(); i++) {cerr << card_set.GetCard(i).GetID() << " ";} cerr << endl;
 
-bool Deck::initialized = false;
-wxBitmap *Deck::card_pics[60] = {nullptr};
+bool initialized = false;
+wxBitmap *card_pics[60];
 
 /**
  * @brief Rescale the card image to proper size
@@ -20,27 +21,6 @@ wxBitmap *RescaleBitmap (const wxBitmap& bitmap, const wxSize& new_size = k_card
 	}
 	const wxImage image = bitmap.ConvertToImage();
 	return new wxBitmap(image.Scale(new_size.GetWidth(), new_size.GetHeight(), wxIMAGE_QUALITY_HIGH));
-}
-
-// Ininitialize the cardset pictures
-Deck::Deck(const CardSet& card_set)
-	: cards(card_set) {
-	if (initialized == false) {
-		wxString prefix("static/Poke/");
-		wxString suffix(".jpg");
-		try {
-			for (int i = 0; i < 55; i++) {
-				wxString infix("");
-				infix << i;
-				auto new_map = new wxBitmap(prefix + infix + suffix, wxBITMAP_TYPE_JPEG);
-				card_pics[i] = RescaleBitmap(*new_map);
-				delete new_map;
-			}
-			initialized = true;
-		} catch (...) {
-			std::cerr << "Image File Lost!" << std::endl;
-		}
-	}
 }
 
 int getCardID(const Card& card) {
@@ -58,7 +38,7 @@ int getCardID(const Card& card) {
 	}
 }
 
-void Deck::Draw(wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]) {
+void Draw(CardSet cards, wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]) {
 	int n = cards.GetNumOfCards();
 	for (int i = 0; i < n; i++) {
 		auto card = cards.GetCard(i);
@@ -94,57 +74,88 @@ BEGIN_EVENT_TABLE(DeckPanel, wxPanel)
 END_EVENT_TABLE()
 
 DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
-	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient) {
+	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient), is_thinking(false) {
+	if (initialized == false) {
+		wxString prefix("static/Poke/");
+		wxString suffix(".jpg");
+		try {
+			for (int i = 0; i < 55; i++) {
+				wxString infix("");
+				infix << i;
+				auto new_map = new wxBitmap(prefix + infix + suffix, wxBITMAP_TYPE_JPEG);
+				card_pics[i] = RescaleBitmap(*new_map);
+				delete new_map;
+			}
+			initialized = true;
+		} catch (...) {
+			std::cerr << "Image File Lost!" << std::endl;
+		}
+	}
+	info = new MyLabel(this, wxID_ANY, wxT("正在思考..."));
+	wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(info, 0, wxALIGN_CENTER);
+	SetSizer(sizer);
 }
 
 CardSet DeckPanel::GetDrawnDeck() {
-	CardSet cards = deck.cards, result(0);
-	int n = cards.GetNumOfCards();
+	CardSet result(0);
+	int n = card_set.GetNumOfCards();
 	for (int i = 0; i < n; i++) {
 		if (is_draw[i]) {
-			result.Insert(cards.GetCard(i));
+			result.Insert(card_set.GetCard(i));
 		}
 	}
 	return result;
 }
 
 void DeckPanel::SetDeck(const CardSet& card_set) {
-	deck = Deck(card_set);
+	this->card_set = card_set;
 }
 
 void DeckPanel::Render() {
 	wxClientDC dc(this);
 	int width, height;
 	this->GetClientSize(&width, &height);
+	cerr << __LINE__ << endl;
+	show_card(card_set);
 
-	int x, y;	// position of the deck
-	switch (orientation) {
-		case kUp:
-			x = 2 * k_card_width;
-			y = 0;
-			break;
-		case kDown:
-			x = 2 * k_card_width;
-			y = height - k_card_height;
-			break;
-		case kLeft:
-			x = 0;
-			y = 30;
-			break;
-		case kRight:
-			x = width - k_card_width;
-			y = 30;
-			break;
-		case kCenter:
-			x = width / 2 - (deck.cards.GetNumOfCards() * k_delta_x + k_card_width) / 2;
-			y = height / 2 - k_card_height / 2;
-			break;		
+	if (is_thinking) {
+		cerr << "thinking..." << endl;
+		info->Show();
+		Layout();
+	} else {
+		info->Hide();
+		Layout();
+		show_card(card_set);
+		int x, y;	// position of the deck
+		switch (orientation) {
+			case kUp:
+				x = 2 * k_card_width;
+				y = 0;
+				break;
+			case kDown:
+				x = 2 * k_card_width;
+				y = height - k_card_height;
+				break;
+			case kLeft:
+				x = 0;
+				y = 30;
+				break;
+			case kRight:
+				x = width - k_card_width;
+				y = 30;
+				break;
+			case kCenter:
+				x = width / 2 - (card_set.GetNumOfCards() * k_delta_x + k_card_width) / 2;
+				y = height / 2 - k_card_height / 2;
+				break;		
+		}
+		// Draw an invisible rectangle to cover the region
+		dc.SetPen(invisible_pen);
+		dc.SetBrush(invisible_brush);
+		dc.DrawRectangle(wxPoint(0, 0), GetSize());
+		Draw(card_set, dc, x, y, face, orientation, is_draw);
 	}
-	// Draw an invisible rectangle to cover the region
-	dc.SetPen(invisible_pen);
-	dc.SetBrush(invisible_brush);
-	dc.DrawRectangle(wxPoint(0, 0), GetSize());
-	deck.Draw(dc, x, y, face, orientation, is_draw);
 }
 
 void DeckPanel::OnRender(wxPaintEvent &event) {
@@ -158,7 +169,7 @@ void DeckPanel::OnClick(wxMouseEvent &event) {
 	std::cerr << mouse_x << " " << mouse_y << std::endl;
 
 	if (orientation == kDown) {
-		int number_of_cards = deck.cards.GetNumOfCards();
+		int number_of_cards = card_set.GetNumOfCards();
 		int x, y;
 		GetClientSize(nullptr, &y);
 		
