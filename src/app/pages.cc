@@ -418,7 +418,10 @@ namespace GameStatus {
 	atomic<bool> show_count_down;		// 是否显示倒计时
 	atomic<bool> is_auction;			// 是否是叫分，叫分时候右下角显示四个按钮
 	atomic<bool> is_my_turn;			// 是否轮到我行动，轮到我行动的时候
+	atomic<bool> show_info;				// 是否显示信息
+	atomic<bool> show_box;				// 显示弹窗
 
+	string disp_info;			// 需要显示的信息
 	CardSet my_cards;			// 我的牌
 	CardSet last_round_card[4];	// 上一轮的牌
 	string user_name[4];		// 用户名
@@ -430,6 +433,8 @@ namespace GameStatus {
 		show_count_down.store(false);
 		is_auction.store(false);
 		is_my_turn.store(false);
+		show_info.store(false);
+		show_box.store(false);
 	}
 
 	void dump () {
@@ -689,11 +694,13 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_box:
 				std::cerr << "m_dispbox" << std::endl;
-				// TODO
+				show_info.store(true);
+				disp_info = message.GetExtension();
 				break;
 			case m_disptext:
 				std::cerr << "m_disptext" << std::endl;
-				// TODO
+				show_box.store(true);
+				disp_info = message.GetExtension();
 				break;
 			case m_dispeffect:
 				std::cerr << "m_dispeffect" << std::endl;
@@ -705,6 +712,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_think:
 				std::cerr << "m_think" << std::endl;
+				// TODO
 				break;
 			case m_deal:
 				std::cerr << "m_deal" << std::endl;
@@ -825,6 +833,8 @@ void GameInterface::Render() {
 	stake_info_string << wxT("当前倍数：") << stake.load();
 	stake_info->SetLabelText(stake_info_string);
 
+	center_info->SetLabelText(disp_info);
+
 	if(show_count_down.load()) {
 		timer_info->Show();
 	} else {
@@ -835,6 +845,16 @@ void GameInterface::Render() {
 		stake_info->Show();
 	} else {
 		stake_info->Hide();
+	}
+
+	if (show_info.load()) {
+		center_info->Show();
+	} else {
+		center_info->Hide();
+	}
+
+	if (show_box.load()) {
+		wxMessageBox(disp_info);
 	}
 
 	if (is_my_turn.load()) {
@@ -923,9 +943,18 @@ void GameInterface::OnTimer(wxTimerEvent &event) {
 	if (!is_counting_down) {
 		return;
 	}
-	if (count_down < 0) {
+	if (count_down < 0) {	// 倒计时时间到了
+		// 停止倒计时
 		is_counting_down = false;
-		// TODO 倒计时结束了
+
+		// 发送空卡组代表不出牌
+		CardSet null_set;
+		Message new_message;
+		new_message.SetCards(null_set);
+		Package new_package(Header(1, 0), new_message.String());
+		get_controller(control);
+		auto client = control->GetClient();
+		client->SendGameMsg(new_package);
 		return;
 	}
 	count_down--;

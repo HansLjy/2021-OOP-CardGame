@@ -69,7 +69,9 @@ enum {
 	eventID_refresh,
 	eventID_game_over,
 	eventID_log_out,
-	eventID_denied
+	eventID_denied,
+	eventID_disp_box,
+	eventID_disp_text
 };
 
 #endif

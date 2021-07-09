@@ -7,4 +7,4 @@ wxDEFINE_EVENT(CreateFailEvent, wxCommandEvent);		// 创建房间失败
 wxDEFINE_EVENT(RefreshEvent, wxCommandEvent);			// 刷新游戏界面
 wxDEFINE_EVENT(LogOutEvent, wxCommandEvent);			// 断开连接
 wxDEFINE_EVENT(DeniedEvent, wxCommandEvent);			// 出牌被拒绝
-wxDEFINE_EVENT(GameOverEvent, wxCommandEvent);				// 游戏结束
+wxDEFINE_EVENT(GameOverEvent, wxCommandEvent);			// 游戏结束
