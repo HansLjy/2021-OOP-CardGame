@@ -48,7 +48,7 @@ public:
 	DeckPanel () = delete;
 	DeckPanel(wxWindow *p_parent, CardFace face, CardOrientation orient);
 
-	const CardSet& GetDrawnDeck();
+	CardSet GetDrawnDeck();
 	void SetDeck(const CardSet& card_set);
 	void Render();
 

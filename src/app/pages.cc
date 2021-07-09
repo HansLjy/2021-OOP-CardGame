@@ -424,6 +424,14 @@ namespace GameStatus {
 	string user_name[4];		// 用户名
 	string info;
 
+	void StartNewRound() {
+		is_counting_down.store(false);
+		show_stake.store(true);
+		show_count_down.store(false);
+		is_auction.store(false);
+		is_my_turn.store(false);
+	}
+
 	void dump () {
 		cerr << "================= dump of status begin =================" << endl;
 		cerr << "number of players: " << num_players << endl;
@@ -468,8 +476,9 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	call_auction[1] = new MyButton(this, gameID_auction1, wxT("叫1分"));
 	call_auction[2] = new MyButton(this, gameID_auction2, wxT("叫2分"));
 	call_auction[3] = new MyButton(this, gameID_auction3, wxT("叫3分"));
-	timer_label = new MyLabel(midpan, wxID_ANY, wxT("回合剩余时间："));
+	timer_info = new MyLabel(midpan, wxID_ANY, wxT("回合剩余时间："));
 	center_info = new MyLabel(midpan, wxID_ANY, wxT("测试信息："));
+	stake_info = new MyLabel(midpan, wxID_ANY, wxT("倍率信息"));
 	timer = new wxTimer(this, gameID_count_down);
 
 	last_round[0] = new DeckPanel(midpan, kFaceUp, kCenter);
@@ -486,7 +495,8 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	mid_hbox->Add(last_round[1], 1, wxEXPAND);
 
 	mid_vbox->Add(last_round[2], 1, wxEXPAND);
-	mid_vbox->Add(timer_label, 1, wxALIGN_CENTER);
+	mid_vbox->Add(timer_info, 1, wxALIGN_CENTER);
+	mid_vbox->Add(stake_info, 1, wxALIGN_CENTER);
 	mid_vbox->Add(center_info, 1, wxALIGN_CENTER);
 	mid_vbox->Add(last_round[0], 1, wxEXPAND);
 
@@ -657,6 +667,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 	while (true) {
 		bool end_loop = false;
 		auto package = client.CollectGameMsg();
+		StartNewRound();
 		std::cerr << "Looping" << std::endl;
 		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
 			wxCommandEvent *log_out = new wxCommandEvent(LogOutEvent, eventID_log_out);
@@ -704,6 +715,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_bid:
 				std::cerr << "m_bid" << std::endl;
+				show_stake.store(true);
 				if (message.IsRequest()) {
 					is_auction.store(true);
 					smallest_bid.store(message.GetPar(1));
@@ -716,6 +728,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_changestake:
 				std::cerr << "m_changestake" << std::endl;
+				show_stake.store(true);
 				stake.store(message.GetPar());
 				break;
 			case m_setlandlord:
@@ -761,7 +774,7 @@ void GameInterface::StartGame(Client &client) {
 
 	cerr << "Start Game!" << std::endl;
 
-	center_info->SetLabelText(wxT("正在初始化……"));
+	center_info->SetLabelText(wxT("游戏进行中"));
 	center_info->Show();
 	timer->Start(1000);
 
@@ -786,7 +799,6 @@ void GameInterface::Render() {
 	user_info[1]->Show();
 
 	if (num_players.load() == 3) {
-		cerr << "3 players " << endl;
 		deck[2]->SetDeck(CardSet(0));
 		last_round[2]->SetDeck(CardSet(0));
 		user_info[2]->Hide();
@@ -796,7 +808,6 @@ void GameInterface::Render() {
 		user_info[3]->SetLabelText(user_name[2]);
 		user_info[3]->Show();
 	} else if (num_players.load() == 4) {
-		cerr << "4 players " << endl;
 		deck[2]->SetDeck(getCardSet(num_cards[2].load()));
 		last_round[2]->SetDeck(last_round_card[2]);
 		user_info[2]->SetLabelText(user_name[2]);
@@ -810,20 +821,20 @@ void GameInterface::Render() {
 
 	this->Layout();
 
-	static char number[20];
-	itoa(stake.load(), number, 10);
-	center_info->SetLabelText(wxT("当前倍数：") + wxString(number));
+	wxString stake_info_string("");
+	stake_info_string << wxT("当前倍数：") << stake.load();
+	stake_info->SetLabelText(stake_info_string);
 
 	if(show_count_down.load()) {
-		timer_label->Show();
+		timer_info->Show();
 	} else {
-		timer_label->Hide();
+		timer_info->Hide();
 	}
 
 	if (show_stake.load()) {
-		center_info->Show();
+		stake_info->Show();
 	} else {
-		center_info->Hide();
+		stake_info->Hide();
 	}
 
 	if (is_my_turn.load()) {
@@ -894,6 +905,13 @@ void GameInterface::OnBid(wxCommandEvent &event) {
 			my_bid = 3;
 			break;
 	}
+	get_controller(control);
+	auto client = control->GetClient();
+	Message new_message;
+	new_message.SetPar(0, my_bid);
+
+	Package new_package(Header(1, 0), new_message.String());
+	client->SendGameMsg(new_package);
 }
 
 void GameInterface::OnPass(wxCommandEvent &event) {
@@ -911,9 +929,9 @@ void GameInterface::OnTimer(wxTimerEvent &event) {
 		return;
 	}
 	count_down--;
-	static char time_string[10];
-	itoa(count_down, time_string, 10);
-	timer_label->SetLabel(wxT("回合剩余时间：") + wxString(time_string) + wxString("s"));
+	wxString timer_info_string("");
+	timer_info_string << wxT("回合剩余时间：") << count_down << "s";
+	timer_info->SetLabel(timer_info_string);
 }
 
 void GameInterface::OnGameOver(wxCommandEvent &event) {

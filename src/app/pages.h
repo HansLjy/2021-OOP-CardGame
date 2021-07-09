@@ -181,8 +181,9 @@ public:
 	GameInterface (wxWindow* p_parent);
 
 	wxTimer			*timer;
-	MyLabel			*timer_label;
 	MyLabel			*center_info;
+	MyLabel			*stake_info;
+	MyLabel			*timer_info;
 	MyLabel			*user_info[4];
 	wxWindow		*p_parent;
 	MyButton		*deal;
