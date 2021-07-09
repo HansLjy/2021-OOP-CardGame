@@ -52,6 +52,7 @@ public:
 	void OnQuit(wxCommandEvent& event);
 	void OnButton(wxCommandEvent& event);
 
+	void OnGameOver(wxCommandEvent &event);
 	void OnJoinSuccess(wxCommandEvent& event);
 	void OnJoinFail(wxCommandEvent& event);
 	void OnCreateSuccess(wxCommandEvent& event);

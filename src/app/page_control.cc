@@ -32,6 +32,7 @@ wxBEGIN_EVENT_TABLE(PageController, wxSimplebook)
 	EVT_BUTTON(createID_back, PageController::OnButton)
 	EVT_BUTTON(overID_back, PageController::OnButton)
 	EVT_BUTTON(wxID_EXIT, PageController::OnQuit)
+	EVT_COMMAND(eventID_game_over, GameOverEvent, PageController::OnGameOver)
 	EVT_COMMAND(eventID_join_success, JoinSuccessEvent, PageController::OnJoinSuccess)
 	EVT_COMMAND(eventID_join_fail, JoinFailEvent, PageController::OnJoinFail)
 	EVT_COMMAND(eventID_create_success, CreateSuccessEvent, PageController::OnCreateSuccess)
@@ -67,6 +68,12 @@ PageController::PageController(wxWindow* p_parent)
 	game_interface = new GameInterface(this);
 	AddPage(game_interface, wxT("Game Interface"));
 
+}
+
+void PageController::OnGameOver(wxCommandEvent &event) {
+	client.QuitRoom();
+	game_over->Render();
+	ChangeSelection(kGameOver);
 }
 
 void PageController::OnQuit(wxCommandEvent& event) {

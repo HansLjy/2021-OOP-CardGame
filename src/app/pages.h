@@ -195,6 +195,7 @@ public:
 	wxPanel			*midpan;
 
 	void StartGame(Client &client);
+	void ChangeMyCards(const CardSet &deck);
 
 	void OnDenied(wxCommandEvent &event);
 	void OnLogOut(wxCommandEvent &event);

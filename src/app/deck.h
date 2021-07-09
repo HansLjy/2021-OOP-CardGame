@@ -34,6 +34,9 @@ public:
 	CardSet	 card_set;
 	bool is_draw[60];				// whether the card has been drawn
 
+	void SetThinking(bool);
+	CardSet& GetCardSet();
+	void Release();
 	void OnPaint();
 	void OnClick();
 
@@ -42,6 +45,7 @@ public:
 	DeckPanel(wxWindow *p_parent, CardFace face, CardOrientation orient);
 
 	CardSet GetDrawnDeck();
+
 	void SetDeck(const CardSet& card_set);
 	void Render();
 

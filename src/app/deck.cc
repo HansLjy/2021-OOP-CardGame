@@ -108,16 +108,28 @@ CardSet DeckPanel::GetDrawnDeck() {
 	return result;
 }
 
+CardSet& DeckPanel::GetCardSet() {
+	return card_set;
+}
+
+void DeckPanel::Release() {
+	for (int i = 0; i < card_set.GetNumOfCards(); i++) {
+		is_draw[i] = false;
+	}
+}
+
 void DeckPanel::SetDeck(const CardSet& card_set) {
 	this->card_set = card_set;
+}
+
+void DeckPanel::SetThinking(bool is_thinking) {
+	this->is_thinking = is_thinking;
 }
 
 void DeckPanel::Render() {
 	wxClientDC dc(this);
 	int width, height;
 	this->GetClientSize(&width, &height);
-	cerr << __LINE__ << endl;
-	show_card(card_set);
 
 	if (is_thinking) {
 		cerr << "thinking..." << endl;
@@ -126,7 +138,6 @@ void DeckPanel::Render() {
 	} else {
 		info->Hide();
 		Layout();
-		show_card(card_set);
 		int x, y;	// position of the deck
 		switch (orientation) {
 			case kUp:

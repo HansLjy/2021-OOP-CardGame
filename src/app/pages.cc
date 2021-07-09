@@ -12,6 +12,7 @@
 #include "events.h"
 
 #define get_controller(controller) auto (controller) = static_cast<PageController*>(this->p_parent);
+#define show_card(card_set) for (int i = 0; i < card_set.GetNumOfCards(); i++) {cerr << card_set.GetCard(i).GetID() << " ";} cerr << endl;
 
 wxBEGIN_EVENT_TABLE(MainMenu, wxPanel)
 	EVT_BUTTON(mainID_play_single, MainMenu::OnPlaySingle)
@@ -402,40 +403,37 @@ wxEND_EVENT_TABLE()
 
 #include <thread>
 #include <atomic>
+#include <mutex>
 
 // 用于交互
 namespace GameStatus {
-	atomic<int> num_players;			// 玩家的数量
-	atomic<int> num_cards[4];			// 牌的数量
-	atomic<int> landlord;				// 地主
-	atomic<int> stake;					// 倍数
-	atomic<int> count_down;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
-	atomic<int> smallest_bid;			// 最小初始分
-	atomic<int> largest_bid;			// 最大初始分
+	std::mutex mtx;
 
-	atomic<bool> is_counting_down;		// 是否正在倒计时
-	atomic<bool> show_stake;			// 是否显示倍数
-	atomic<bool> show_count_down;		// 是否显示倒计时
-	atomic<bool> is_auction;			// 是否是叫分，叫分时候右下角显示四个按钮
-	atomic<bool> is_my_turn;			// 是否轮到我行动，轮到我行动的时候
-	atomic<bool> show_info;				// 是否显示信息
-	atomic<bool> show_box;				// 显示弹窗
+	int num_players;			// 玩家的数量
+	int num_cards[4];			// 牌的数量
+	int landlord;				// 地主
+	int stake;					// 倍数
+	int count_down;				// 倒计时，开始倒计时的时候将其设置为倒计时的初始时间
+	int smallest_bid;			// 最小初始分
+	int largest_bid;			// 最大初始分
+
+	bool is_counting_down;		// 是否正在倒计时
+	bool show_stake;			// 是否显示倍数
+	bool is_auction;			// 是否是叫分，叫分时候右下角显示四个按钮
+	bool is_my_turn;			// 是否轮到我行动，轮到我行动的时候
+	bool could_pass;			// 是否可以 pass
+	bool show_info;				// 是否显示信息
+	bool show_box;				// 显示弹窗
+	bool is_denied;				// 上一轮出牌非法
+	int  thinker;				// 谁正在思考
 
 	string disp_info;			// 需要显示的信息
 	CardSet my_cards;			// 我的牌
 	CardSet last_round_card[4];	// 上一轮的牌
+	CardSet last_dealt;			// 上一轮我出的牌
 	string user_name[4];		// 用户名
 	string info;
 
-	void StartNewRound() {
-		is_counting_down.store(false);
-		show_stake.store(true);
-		show_count_down.store(false);
-		is_auction.store(false);
-		is_my_turn.store(false);
-		show_info.store(false);
-		show_box.store(false);
-	}
 
 	void dump () {
 		cerr << "================= dump of status begin =================" << endl;
@@ -448,16 +446,28 @@ namespace GameStatus {
 		cerr << "smallest bid: " << smallest_bid << endl;
 		cerr << "largest bid: " << largest_bid << endl;
 
-		cerr << "is auction? " << boolalpha << is_auction << endl;
 		cerr << "is counting down? " << boolalpha << is_counting_down << endl;
-		cerr << "stake: " << stake << endl;
 		cerr << "show stake? " << boolalpha << show_stake << endl;
-		cerr << "show count down? " << boolalpha << show_count_down << endl;
+		cerr << "is auction? " << boolalpha << is_auction << endl;
 		cerr << "is my turn? " << boolalpha << is_my_turn << endl;
+		cerr << "could pass? " << boolalpha << could_pass << endl;
+		cerr << "show info? " << boolalpha << show_info << endl;
+		cerr << "show box? "  << boolalpha << show_box << endl;
+		cerr << "is denied? " << boolalpha << is_denied << endl;
+		cerr << "thinker: " << thinker << endl;
 		cerr << "User names: ";
 		for (int i = 0; i < 4; i++)
 			cerr << user_name[i] << " " << endl;
 		cerr << "========================================================" << endl;
+	}
+
+	void StartNewRound() {
+		show_stake = true;
+		is_auction = false;
+		is_denied = false;
+		show_info = false;
+		show_box = false;
+		thinker = -1;
 	}
 }
 
@@ -569,10 +579,10 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
 	switch (game_type) {
 		case kLandlord3:
-			num_players.store(3);
+			num_players = 3;
 			break;
 		case kLandlord4:
-			num_players.store(4);
+			num_players = 4;
 			break;
 		default:
 			cerr << "What the hack is this shit?" << endl;
@@ -583,7 +593,7 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 		return;
 	}
 	// 设置用户名
-	switch(num_players.load()) {
+	switch(num_players) {
 		case 4:
 			for (int i = 0; i < 4; i++) {
 				user_name[i] = new_user_name[i];
@@ -626,10 +636,10 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
 	switch (game_type) {
 		case kLandlord3:
-			num_players.store(3);
+			num_players = 3;
 			break;
 		case kLandlord4:
-			num_players.store(4);
+			num_players = 4;
 			break;
 		default:
 			cerr << "What the hack is this shit?" << endl;
@@ -644,7 +654,7 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 	}
 	// 设置用户名
 	
-	for (int i = 0; i < num_players.load(); i++) {
+	for (int i = 0; i < num_players; i++) {
 		user_name[i] = new_user_name[i];
 	}
 	wxCommandEvent join_success(JoinSuccessEvent, eventID_join_success);
@@ -672,7 +682,9 @@ void GameThread(Client &client, GameInterface *game_interface) {
 	while (true) {
 		bool end_loop = false;
 		auto package = client.CollectGameMsg();
+		mtx.lock();
 		StartNewRound();
+		dump();
 		std::cerr << "Looping" << std::endl;
 		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
 			wxCommandEvent *log_out = new wxCommandEvent(LogOutEvent, eventID_log_out);
@@ -680,7 +692,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 			break;
 		}
 		auto message = Message(package.GetData());
-		wxCommandEvent *denied;
 		switch (message.GetType()) {
 			case m_empty:
 				std::cerr << "m_empty" << std::endl;
@@ -694,12 +705,12 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_box:
 				std::cerr << "m_dispbox" << std::endl;
-				show_info.store(true);
+				show_info = true;
 				disp_info = message.GetExtension();
 				break;
 			case m_disptext:
 				std::cerr << "m_disptext" << std::endl;
-				show_box.store(true);
+				show_box = true;
 				disp_info = message.GetExtension();
 				break;
 			case m_dispeffect:
@@ -712,7 +723,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_think:
 				std::cerr << "m_think" << std::endl;
-				// TODO
+				thinker = message.GetPlayer();
 				break;
 			case m_deal:
 				std::cerr << "m_deal" << std::endl;
@@ -723,50 +734,58 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_bid:
 				std::cerr << "m_bid" << std::endl;
-				show_stake.store(true);
+				show_stake = true;
 				if (message.IsRequest()) {
-					is_auction.store(true);
-					smallest_bid.store(message.GetPar(1));
-					largest_bid.store(message.GetPar(2));
-					count_down.store(message.GetTime());
+					is_auction = true;
+					smallest_bid = message.GetPar(1);
+					largest_bid = message.GetPar(2);
+					count_down = message.GetTime();
 				} else {
-					is_auction.store(false);
+					is_auction = false;
 					// TODO
 				}
 				break;
 			case m_changestake:
 				std::cerr << "m_changestake" << std::endl;
-				show_stake.store(true);
-				stake.store(message.GetPar());
+				show_stake = true;
+				stake = message.GetPar();
 				break;
 			case m_setlandlord:
 				std::cerr << "m_setlandlord" << std::endl;
-				landlord.store(message.GetPar());
-				num_cards[message.GetPlayer()].store(message.GetPar());
+				landlord = message.GetPar();
+				num_cards[message.GetPlayer()] = message.GetPar();
 				last_round_card[message.GetPlayer()] = message.GetCards();
+				if (message.GetPlayer() == 0) {	// 如果我叫了地主，需要合并手牌
+					cerr << "I am the landlord!" << endl;
+					my_cards.Insert(message.GetCards());
+				}
 				break;
-				
 			case m_playout:
 				std::cerr << "m_playout" << std::endl;
-				if (message.IsRequest()) {
-					// 需要出牌
-					is_counting_down.store(true);
-					is_my_turn.store(true);
-					count_down.store(message.GetTime());
+				if (message.IsRequest()) { // 需要出牌
+					is_counting_down = true;
+					is_my_turn = true;
+					count_down = message.GetTime();
+					could_pass = message.GetPar();
 				} else {
-					num_cards[message.GetPlayer()].store(message.GetPar());
+					num_cards[message.GetPlayer()] = message.GetPar();
 					last_round_card[message.GetPlayer()] = message.GetCards();
 				}
 				break;
 			case m_deny:
 				std::cerr << "m_deny" << std::endl;
-				denied = new wxCommandEvent(DeniedEvent, eventID_denied);
-				game_interface->GetEventHandler()->QueueEvent(denied);
+				is_denied = true;
 				break;
 			default:
 				std::cerr << "m_other" << std::endl;
 				break;
 		}
+		if ((message.GetType() != m_deny || !is_denied) && message.GetType() != m_playout) {
+			is_counting_down = false;
+			is_my_turn = false;
+			could_pass = false;
+		}
+		mtx.unlock();
 		if (end_loop) {
 			break;
 		}
@@ -794,34 +813,47 @@ void GameInterface::StartGame(Client &client) {
 // 根据当前的状态来渲染房间
 void GameInterface::Render() {
 	using namespace GameStatus;
+	mtx.lock();
+
+	if (is_denied) {
+		wxMessageBox(wxT("出牌不合法！"));
+		my_cards.Insert(last_dealt);
+	}
+	
 	dump();
+	for (int i = 0; i < 4; i++) {
+		deck[i]->SetThinking(false);
+	}
+	if (thinker != -1) {
+		deck[thinker]->SetThinking(true);
+	}
 
 	deck[0]->SetDeck(my_cards);
 	last_round[0]->SetDeck(last_round_card[0]);
 	user_info[0]->SetLabelText(user_name[0]);
 	user_info[0]->Show();
 
-	deck[1]->SetDeck(getCardSet(num_cards[1].load()));
+	deck[1]->SetDeck(getCardSet(num_cards[1]));
 	last_round[1]->SetDeck(last_round_card[1]);
 	user_info[1]->SetLabelText(user_name[1]);
 	user_info[1]->Show();
 
-	if (num_players.load() == 3) {
+	if (num_players == 3) {
 		deck[2]->SetDeck(CardSet(0));
 		last_round[2]->SetDeck(CardSet(0));
 		user_info[2]->Hide();
 
-		deck[3]->SetDeck(getCardSet(num_cards[2].load()));
+		deck[3]->SetDeck(getCardSet(num_cards[2]));
 		last_round[3]->SetDeck(last_round_card[2]);
 		user_info[3]->SetLabelText(user_name[2]);
 		user_info[3]->Show();
-	} else if (num_players.load() == 4) {
-		deck[2]->SetDeck(getCardSet(num_cards[2].load()));
+	} else if (num_players == 4) {
+		deck[2]->SetDeck(getCardSet(num_cards[2]));
 		last_round[2]->SetDeck(last_round_card[2]);
 		user_info[2]->SetLabelText(user_name[2]);
 		user_info[2]->Show();
 
-		deck[3]->SetDeck(getCardSet(num_cards[3].load()));
+		deck[3]->SetDeck(getCardSet(num_cards[3]));
 		last_round[3]->SetDeck(last_round_card[3]);
 		user_info[3]->SetLabelText(user_name[3]);
 		user_info[3]->Show();
@@ -830,38 +862,42 @@ void GameInterface::Render() {
 	this->Layout();
 
 	wxString stake_info_string("");
-	stake_info_string << wxT("当前倍数：") << stake.load();
+	stake_info_string << wxT("当前倍数：") << stake;
 	stake_info->SetLabelText(stake_info_string);
 
 	center_info->SetLabelText(disp_info);
 
-	if(show_count_down.load()) {
+	if(is_counting_down) {
 		timer_info->Show();
 	} else {
 		timer_info->Hide();
 	}
 
-	if (show_stake.load()) {
+	if (show_stake) {
 		stake_info->Show();
 	} else {
 		stake_info->Hide();
 	}
 
-	if (show_info.load()) {
+	if (show_info) {
 		center_info->Show();
 	} else {
 		center_info->Hide();
 	}
 
-	if (show_box.load()) {
+	if (show_box) {
 		wxMessageBox(disp_info);
 	}
 
-	if (is_my_turn.load()) {
+	if (is_my_turn) {
 		deal->Show();
-		pass->Show();
 	} else {
 		deal->Hide();
+	}
+	
+	if (could_pass) {
+		pass->Show();
+	} else {
 		pass->Hide();
 	}
 	
@@ -869,9 +905,9 @@ void GameInterface::Render() {
 		call_auction[i]->Hide();
 	}
 
-	if (is_auction.load()) {
+	if (is_auction) {
 		call_auction[0]->Show();
-		for (int i = smallest_bid.load(); i <= largest_bid.load(); i++) {
+		for (int i = smallest_bid; i <= largest_bid; i++) {
 			call_auction[i]->Show();
 		}
 	}
@@ -882,14 +918,11 @@ void GameInterface::Render() {
 		deck[i]->Render();
 		last_round[i]->Render();
 	}
+	mtx.unlock();
 }
 
 void GameInterface::OnRefresh(wxCommandEvent &event) {
 	Render();
-}
-
-void GameInterface::OnDenied(wxCommandEvent &event) {
-	wxMessageBox(wxT("出牌不合法！"));
 }
 
 void GameInterface::OnLogOut(wxCommandEvent &event) {
@@ -897,18 +930,21 @@ void GameInterface::OnLogOut(wxCommandEvent &event) {
 }
 
 void GameInterface::OnDeal(wxCommandEvent &event) {
-	CardSet draw_card = deck[0]->GetDrawnDeck();
-	for (int i = 0; i < draw_card.GetNumOfCards(); i++) {
-		cerr << draw_card.GetCard(i).GetID() << " ";
-	}
+	using namespace GameStatus;
+	mtx.lock();
+	last_dealt = deck[0]->GetDrawnDeck();
+	deck[0]->Release();
+	my_cards.Delete(last_dealt);
+	mtx.unlock();
 
 	get_controller(control);
 	auto client = control->GetClient();
 	Message new_message;
-	new_message.SetCards(draw_card);
+	new_message.SetCards(last_dealt);
 
 	Package new_package(Header(1, i_server), new_message.String());
 	client->SendGameMsg(new_package);
+	Render();
 
 	std::cerr << "Dealt!" << std::endl;
 }
@@ -940,6 +976,8 @@ void GameInterface::OnBid(wxCommandEvent &event) {
 
 void GameInterface::OnPass(wxCommandEvent &event) {
 	std::cerr << "Pass!" << std::endl;
+	CardSet card_set(0);
+
 }
 
 void GameInterface::OnTimer(wxTimerEvent &event) {

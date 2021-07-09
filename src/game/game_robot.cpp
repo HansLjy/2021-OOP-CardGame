@@ -10,9 +10,15 @@
 
 using namespace std;
 
-template <int np> CardSet WinnerBasedGame<np>::playout_robot(ci<np> k) const {}
+template <int np> CardSet WinnerBasedGame<np>::playout_robot(ci<np> k) const {
+	return CardSet(0);
+}
 // or make it pure virtual and implement the robots individually
 
-int DouDizhuGame::bid_robot(ci<3> k) const {}
+int DouDizhuGame::bid_robot(ci<3> k) const {
+	return 0;
+}
 
-int SirenDouDizhuGame::bid_robot(ci<4> k) const {}
+int SirenDouDizhuGame::bid_robot(ci<4> k) const {
+	return 0;
+}
