@@ -13,7 +13,8 @@ enum GUISingleOrMulti {
 
 enum GUIGameType {
 	kLandlord3 = 0,
-	kLandlord4
+	kLandlord4,
+	k2v2
 };
 
 enum GUIJoinOrCreate {

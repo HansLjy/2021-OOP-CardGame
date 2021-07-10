@@ -123,6 +123,7 @@ SingleGameCreateMenu::SingleGameCreateMenu (wxWindow* p_parent)
 
 	game_select->Insert(wxT("三人斗地主"), 0);
 	game_select->Insert(wxT("四人斗地主"), 1);
+	game_select->Insert(wxT("二对二"), 2);
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
@@ -148,7 +149,17 @@ void SingleGameCreateMenu::OnConfirm(wxCommandEvent &event) {
 	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
 	control->app_status.player_number = user_number_input->GetValue();
 	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
-	control->app_status.game_type = game_select->GetSelection() == 0 ? kLandlord3 : kLandlord4;
+	switch (game_select->GetSelection()) {
+		case 0:
+			control->app_status.game_type = kLandlord3;
+			break;
+		case 1:
+			control->app_status.game_type = kLandlord4;
+			break;
+		case 2:
+			control->app_status.game_type = k2v2;
+			break;
+	}
 	std::cerr << "Click confirm" << std::endl;
 	event.Skip();
 }
@@ -301,6 +312,7 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 
 	game_select->Insert(wxT("三人斗地主"), 0);
 	game_select->Insert(wxT("四人斗地主"), 1);
+	game_select->Insert(wxT("二对二"), 2);
 	game_select->SetSelection(0);
 
 	CenterBlockSizer *sizer = new CenterBlockSizer(this);
@@ -322,7 +334,17 @@ void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
 	get_controller(control);
 	control->app_status.IP_address = "127.0.0.1";
 	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
-	control->app_status.game_type = game_select->GetSelection() == 0 ? kLandlord3 : kLandlord4;
+	switch (game_select->GetSelection()) {
+		case 0:
+			control->app_status.game_type = kLandlord3;
+			break;
+		case 1:
+			control->app_status.game_type = kLandlord4;
+			break;
+		case 2:
+			control->app_status.game_type = k2v2;
+			break;
+	}
 	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
 	control->app_status.user_name = user_name_input->GetLineText(0);
 	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
@@ -466,6 +488,7 @@ namespace GameStatus {
 	string disp_info;			// 需要显示的信息
 	CardSet my_cards;			// 我的牌
 	CardSet last_round_card[4];	// 上一轮的牌
+	int auction[4];				// 每个人叫的分数
 	CardSet last_dealt;			// 上一轮我出的牌
 	string user_name[4];		// 用户名
 	string info;
@@ -506,7 +529,15 @@ namespace GameStatus {
 		show_info = false;
 		show_box = false;
 		is_denied = false;
+		for (int i = 0; i < 4; i++) {
+			auction[i] = -1;
+		}
 		thinker = -1;
+	}
+
+	void Restart() {
+		ClearAll();
+		landlord = -1;
 	}
 }
 
@@ -614,6 +645,7 @@ CardSet getCardSet(int n) {
 
 void JoinGameThread (AppStatus &status, Client& client, PageController *controller) {
 	using namespace GameStatus;
+	using GameConn::GameType;
 	GameConn::GameType game_type;
 	int my_pos;
 	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type, my_pos);
@@ -623,10 +655,11 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 		return;
 	}
 	switch (game_type) {
-		case kLandlord3:
+		case GameType::Landlords_3:
 			num_players = 3;
 			break;
-		case kLandlord4:
+		case GameType::Landlords_4:
+		case GameType::Doubleclasp:
 			num_players = 4;
 			break;
 		default:
@@ -647,11 +680,12 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 	switch (status.game_type) {
 		case kLandlord3:
 			create_success = launcher.OpenRoom(GameConn::Landlords_3, status.player_number, 3 - status.player_number) == 0;
-			std::cerr << "Create LandLord3" << std::endl;
 			break;
 		case kLandlord4:
 			create_success = launcher.OpenRoom(GameConn::Landlords_4, status.player_number, 4 - status.player_number) == 0;
-			std::cerr << "Create LandLord4" << std::endl;
+			break;
+		case k2v2:
+			create_success = launcher.OpenRoom(GameConn::Doubleclasp, status.player_number, 4 - status.player_number) == 0;
 			break;
 	}
 	if (create_success) {
@@ -674,28 +708,33 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 		return;
 	}
 	switch (game_type) {
-		case kLandlord3:
+		case GameType::Landlords_3:
 			num_players = 3;
 			break;
-		case kLandlord4:
+		case GameType::Landlords_4:
+		case GameType::Doubleclasp:
 			num_players = 4;
 			break;
 		default:
 			cerr << "What the hack is this shit?" << endl;
 	}
-	// 设置用户名	
+	// 设置用户名
 	for (int i = 0; i < num_players; i++) {
 		user_name[i] = new_user_name[(i + my_pos) % num_players];
 	}
-
-	wxCommandEvent join_success(JoinSuccessEvent, eventID_join_success);
-	controller->GetEventHandler()->QueueEvent(join_success.Clone());
-	std::cerr << "Join Success" << std::endl;
+	wxCommandEvent *join_success = new wxCommandEvent(JoinSuccessEvent, eventID_join_success);
+	controller->GetEventHandler()->QueueEvent(join_success);
 }
 
 // 游戏结束时设置游戏结束时界面的参数
 void GameOverSetting(Message message, GameInterface *game_interface) {
 	using namespace GameStatus;
+	my_cards = CardSet(0);
+	for (int i = 0; i < 4; i++) {
+		last_round_card[i] = CardSet(0);
+		num_cards[i] = 0;
+	}
+
 	auto control = static_cast<PageController *>(game_interface->p_parent);
 	int score[4];
 
@@ -704,6 +743,16 @@ void GameOverSetting(Message message, GameInterface *game_interface) {
 	}
 
 	control->game_over->SetScore(user_name, score, num_players);
+}
+
+inline int getPlayerId(int id, int num_players) {
+	if (num_players == 4) {
+		return id;
+	}
+	if (id < 2) {
+		return id;
+	}
+	return 3;
 }
 
 void GameThread(Client &client, GameInterface *game_interface) {
@@ -729,7 +778,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				std::cerr << "m_empty" << std::endl;
 				break;
 			case m_start:
-				ClearAll();
+				Restart();
 				std::cerr << "m_start" << std::endl;
 				break;
 			case m_end:
@@ -751,7 +800,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_dispeffect:
 				std::cerr << "m_dispeffect" << std::endl;
-				// TODO
 				break;
 			case m_dispscore:
 				ClearAll();
@@ -782,7 +830,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 					count_down = message.GetTime();
 				} else {
 					is_auction = false;
-					// TODO
+					auction[message.GetPlayer()] = message.GetPar();
 				}
 				break;
 			case m_changestake:
@@ -794,11 +842,10 @@ void GameThread(Client &client, GameInterface *game_interface) {
 			case m_setlandlord:
 				ClearAll();
 				std::cerr << "m_setlandlord" << std::endl;
-				landlord = message.GetPar();
+				landlord = message.GetPlayer();
 				num_cards[message.GetPlayer()] = message.GetPar();
 				last_round_card[message.GetPlayer()] = message.GetCards();
 				if (message.GetPlayer() == 0) {	// 如果我叫了地主，需要合并手牌
-					cerr << "I am the landlord!" << endl;
 					my_cards.Insert(message.GetCards());
 				}
 				break;
@@ -847,23 +894,29 @@ void GameInterface::StartGame(Client &client) {
 	game_thread.detach();
 }
 
-
 // 根据当前的状态来渲染房间
 void GameInterface::Render() {
 	using namespace GameStatus;
 	mtx.lock();
+
+	cerr << thinker << endl;
 
 	if (is_denied) {
 		wxMessageBox(wxT("出牌不合法！"));
 		my_cards.Insert(last_dealt);
 	}
 	
-	dump();
 	for (int i = 0; i < 4; i++) {
-		deck[i]->SetThinking(false);
+		last_round[i]->SetThinking(false);
 	}
+	
 	if (thinker != -1) {
-		deck[thinker]->SetThinking(true);
+		cerr << getPlayerId(thinker, num_players) << endl;
+		last_round[getPlayerId(thinker, num_players)]->SetThinking(true);
+	}
+
+	for (int i = 0; i < num_players; i++) {
+		last_round[getPlayerId(i, num_players)]->SetBidding(auction[i]);
 	}
 
 	deck[0]->SetDeck(my_cards);
@@ -895,6 +948,11 @@ void GameInterface::Render() {
 		last_round[3]->SetDeck(last_round_card[3]);
 		user_info[3]->SetLabelText(user_name[3]);
 		user_info[3]->Show();
+	}
+
+	if(landlord != -1) {
+		cerr << "LandLord! " << landlord << " " << getPlayerId(landlord, num_players) << endl;
+		user_info[getPlayerId(landlord, num_players)]->SetLabelText(user_name[landlord] + wxT("（地主）"));
 	}
 
 	this->Layout();

@@ -92,7 +92,7 @@ BEGIN_EVENT_TABLE(DeckPanel, wxPanel)
 END_EVENT_TABLE()
 
 DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
-	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient), is_thinking(false) {
+	: wxPanel(p_parent), p_parent(p_parent), face(face), orientation(orient), is_thinking(false), bid(-1) {
 	if (initialized == false) {
 		wxString prefix("static/Poke/");
 		wxString suffix(".jpg");
@@ -110,7 +110,7 @@ DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
 		}
 	}
 	info = new MyLabel(this, wxID_ANY, wxT("正在思考..."));
-	wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(info, 0, wxALIGN_CENTER);
 	SetSizer(sizer);
 }
@@ -161,13 +161,30 @@ void DeckPanel::SetThinking(bool is_thinking) {
 	this->is_thinking = is_thinking;
 }
 
+void DeckPanel::SetBidding(int bid) {
+	this->bid = bid;
+}
+
 void DeckPanel::Render() {
 	wxClientDC dc(this);
 	int width, height;
 	this->GetClientSize(&width, &height);
 
 	if (is_thinking) {
-		cerr << "thinking..." << endl;
+		dc.SetPen(invisible_pen);
+		dc.SetBrush(invisible_brush);
+		dc.DrawRectangle(wxPoint(0, 0), GetSize());
+		info->SetLabelText(wxT("正在思考..."));
+		info->Show();
+		Layout();
+	} else if (bid != -1) {
+		wxString info_string("");
+		if (bid == 0) {
+			info_string << wxT("不叫！");
+		} else {
+			info_string << wxT("叫地主：") << bid << wxT("分");
+		}
+		info->SetLabelText(info_string);
 		info->Show();
 		Layout();
 	} else {
@@ -185,11 +202,11 @@ void DeckPanel::Render() {
 				break;
 			case kLeft:
 				x = 0;
-				y = 30;
+				y = 20;
 				break;
 			case kRight:
 				x = width - k_card_width;
-				y = 30;
+				y = 20;
 				break;
 			case kCenter:
 				x = width / 2 - (card_set.GetNumOfCards() * k_delta_x + k_card_width) / 2;

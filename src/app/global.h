@@ -9,8 +9,8 @@
 const int screen_width = wxSystemSettings::GetMetric(wxSYS_SCREEN_X, NULL);
 const int screen_height = wxSystemSettings::GetMetric(wxSYS_SCREEN_Y, NULL);
 
-const int k_window_length = screen_width * 0.8;
-const int k_window_height = screen_height * 0.8;
+const int k_window_length = screen_width;
+const int k_window_height = screen_height;
 
 const wxPoint k_default_position(50, 50);
 const wxSize k_default_size(k_window_length, k_window_height);

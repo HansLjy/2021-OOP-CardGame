@@ -28,6 +28,7 @@ class DeckPanel : public wxPanel {
 	CardOrientation orientation;	// the position of the cardset
 
 	bool	 is_thinking;
+	int		 bid;
 	wxWindow *p_parent;
 	MyLabel	 *info;
 public:
@@ -35,6 +36,7 @@ public:
 	bool is_draw[60];				// whether the card has been drawn
 
 	void SetThinking(bool);
+	void SetBidding(int);
 	CardSet& GetCardSet();
 	void Release();
 	void OnPaint();
