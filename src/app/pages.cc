@@ -876,8 +876,8 @@ void GameInterface::Render() {
 	user_info[1]->Show();
 
 	if (num_players == 3) {
-		deck[2]->SetDeck(CardSet(0));
-		last_round[2]->SetDeck(CardSet(0));
+		deck[2]->Hide();
+		last_round[2]->Hide();
 		user_info[2]->Hide();
 
 		deck[3]->SetDeck(getCardSet(num_cards[2]));

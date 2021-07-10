@@ -21,7 +21,7 @@ enum CardFace {
 	kFaceUp, kFaceDown
 };
 
-void Draw(CardSet card_set, wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]);
+void Draw(const CardSet& card_set, wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]);
 
 class DeckPanel : public wxPanel {
 	CardFace face;					// face up or face down

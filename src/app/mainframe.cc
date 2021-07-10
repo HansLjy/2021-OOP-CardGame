@@ -16,6 +16,7 @@ MainFrame::MainFrame(const wxString& title)
 	m_controller = new PageController(this);
 
 	this->SetMinSize(k_default_size);
+	this->SetMaxSize(k_default_size);
 
 	// Change background color
 	// wxColor bg_color;

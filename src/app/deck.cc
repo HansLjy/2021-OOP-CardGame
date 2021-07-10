@@ -23,32 +23,50 @@ wxBitmap *RescaleBitmap (const wxBitmap& bitmap, const wxSize& new_size = k_card
 	return new wxBitmap(image.Scale(new_size.GetWidth(), new_size.GetHeight(), wxIMAGE_QUALITY_HIGH));
 }
 
-int getCardID(const Card& card) {
-	switch (card.GetSuit()) {
+int getCardID(int suit, int rank) {
+	switch (suit) {
 		case club:
-			return card.GetRank();
+			return rank;
 		case diamond:
-			return 13 + card.GetRank();
+			return 13 + rank;
 		case spade:
-			return 26 + card.GetRank();
+			return 26 + rank;
 		case heart:
-			return 39 + card.GetRank();
+			return 39 + rank;
 		case joker:
-			return card.GetRank() == 0 ? 54 : 53;
+			return rank == 0 ? 54 : 53;
 	}
 }
 
-void Draw(CardSet cards, wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]) {
+vector<int> suit_order{heart, diamond, club, spade};
+vector<int> rank_order{3, 4, 5, 6, 7, 8, 9, 10, J, Q, K, A, 2, R, B};
+
+void Draw(const CardSet& cards, wxDC &dc, int x, int y, CardFace face, CardOrientation orientation, bool is_drawn[]) {
 	int n = cards.GetNumOfCards();
+
+	vector<int> card_id;
+	for (const int rank : rank_order) {
+		if (rank != R && rank != B) {
+			for (const int suit : suit_order) {
+				for (int i = 0; i < cards.GetNum(suit, rank); i++) {
+					card_id.push_back(getCardID(suit, rank));
+				}
+			}
+		} else {
+			for (int i = 0; i < cards.GetNum(joker, rank); i++) {
+				card_id.push_back(getCardID(joker, rank));
+			}
+		}
+	}
+
 	for (int i = 0; i < n; i++) {
-		auto card = cards.GetCard(i);
 		int draw_y = y;
 		if (is_drawn[i] && orientation == kDown) {
 			draw_y -= k_delta_y;
 		}
 		switch (face) {
 			case kFaceUp   :
-				dc.DrawBitmap(*card_pics[getCardID(card)], x, draw_y);
+				dc.DrawBitmap(*card_pics[card_id[i]], x, draw_y);
 				break;
 			case kFaceDown :
 				dc.DrawBitmap(*card_pics[0], x, draw_y);
@@ -98,11 +116,28 @@ DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
 }
 
 CardSet DeckPanel::GetDrawnDeck() {
+	vector<int> suits, ranks;
+	for (const int rank : rank_order) {
+		if (rank != R && rank != B) {
+			for (const int suit : suit_order) {
+				for (int i = 0; i < card_set.GetNum(suit, rank); i++) {
+					suits.push_back(suit);
+					ranks.push_back(rank);
+				}
+			}
+		} else {
+			for (int i = 0; i < card_set.GetNum(joker, rank); i++) {
+				suits.push_back(joker);
+				ranks.push_back(rank);
+			}
+		}
+	}
+
 	CardSet result(0);
 	int n = card_set.GetNumOfCards();
 	for (int i = 0; i < n; i++) {
 		if (is_draw[i]) {
-			result.Insert(card_set.GetCard(i));
+			result.Insert(Card(suits[i], ranks[i]));
 		}
 	}
 	return result;
