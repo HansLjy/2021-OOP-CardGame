@@ -513,9 +513,9 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	: wxPanel(p_parent), p_parent(p_parent), dc(this) {
 
 	deck[0] = new DeckPanel(this, kFaceUp, kDown);
-	deck[1] = new DeckPanel(this, kFaceDown, kLeft);
+	deck[1] = new DeckPanel(this, kFaceDown, kRight);
 	deck[2] = new DeckPanel(this, kFaceDown, kUp);
-	deck[3] = new DeckPanel(this, kFaceDown, kRight);
+	deck[3] = new DeckPanel(this, kFaceDown, kLeft);
 
 	user_info[0] = new MyLabel(this, wxID_ANY, wxT("玩家0"));
 	user_info[1] = new MyLabel(this, wxID_ANY, wxT("玩家1"));
@@ -538,7 +538,7 @@ GameInterface::GameInterface(wxWindow *p_parent)
 	last_round[1] = new DeckPanel(midpan, kFaceUp, kCenter);
 	last_round[2] = new DeckPanel(midpan, kFaceUp, kCenter);
 	last_round[3] = new DeckPanel(midpan, kFaceUp, kCenter);
-	
+
 	wxBoxSizer *mid_vbox = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer *mid_hbox = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *mid_hbox_inner = new wxBoxSizer(wxHORIZONTAL);
@@ -557,15 +557,15 @@ GameInterface::GameInterface(wxWindow *p_parent)
 
 	wxBoxSizer *up_box = new wxBoxSizer(wxHORIZONTAL);
 	up_box->Add(user_info[2], 2, wxALIGN_TOP);
-	up_box->Add(deck[2], 8, wxALIGN_CENTER);
+	up_box->Add(deck[2], 8, wxEXPAND);
 
 	wxBoxSizer *left_box = new wxBoxSizer(wxVERTICAL);
 	left_box->Add(user_info[3], 2, wxALIGN_LEFT);
-	left_box->Add(deck[3], 8, wxALIGN_CENTER);
+	left_box->Add(deck[3], 8, wxEXPAND);
 
 	wxBoxSizer *right_box = new wxBoxSizer(wxVERTICAL);
 	right_box->Add(user_info[1], 2, wxALIGN_RIGHT);
-	right_box->Add(deck[1], 8, wxALIGN_CENTER);
+	right_box->Add(deck[1], 8, wxEXPAND);
 
 	wxBoxSizer *hbox = new wxBoxSizer(wxHORIZONTAL);
 	hbox->Add(left_box, 2, wxEXPAND);

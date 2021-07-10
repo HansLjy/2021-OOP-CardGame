@@ -73,7 +73,6 @@ PageController::PageController(wxWindow* p_parent)
 
 	game_interface = new GameInterface(this);
 	AddPage(game_interface, wxT("Game Interface"));
-
 }
 
 void PageController::OnGameOver(wxCommandEvent &event) {
