@@ -20,6 +20,12 @@ void Port::SendGameType(GameType gt, SOCKET to) {
     SendInfo(gm, to);
 }
 
+void Port::SendInt(int integer, SOCKET to) {
+    GameMessage gm;
+    gm.setInt(integer);
+    SendInfo(gm, to);
+}
+
 void Port::SendInfo(const GameMessage& gm, SOCKET clntsocket){
     if(clntsocket==INVALID_SOCKET||clntsocket==0){
         //return MESSAGE_CANCELED;
@@ -66,6 +72,10 @@ msg_t Port::read_msg(SOCKET s,GameMessage& gm,Package& pkg) {
             break;
         case ConnMsg::MSG_GAME_TYPE:
             gm.setGameType(buf);
+            break;
+        case ConnMsg::MSG_SEND_INT:
+            gm.setInt(buf);
+            break;
         default:break;
         }
     }

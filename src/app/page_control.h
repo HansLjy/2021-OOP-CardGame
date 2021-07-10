@@ -42,6 +42,7 @@ public:
 	MainMenu				*main_menu;
 	SingleGameMenu			*single_game_menu;
 	SingleGameCreateMenu	*single_game_create_menu;
+	SingleGameJoinMenu		*single_game_join_menu;
 	MultiGameMenu			*multi_game_menu;
 	MultiGameJoinSetting	*multi_game_join_setting;
 	MultiGameCreateSetting	*multi_game_create_setting;

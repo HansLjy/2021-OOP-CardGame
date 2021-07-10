@@ -12,15 +12,15 @@ public:
     int OpenRoom(GameType gt, int humans, int robots);
 
     // return: success if 0 else failure occured
-    int StartGame();
+    virtual int StartGame();
 
     GameLauncher():s(),game_ptr(nullptr){}
     ~GameLauncher();
-private:
+protected:
     void* game_ptr;
     Server s;
-    void setGame();
-    void clearGame();
+    virtual void setGame();
+    virtual void clearGame();
     static unsigned WINAPI thread_main(void* LPgamelauncher);
 };
 

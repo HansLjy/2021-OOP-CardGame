@@ -6,6 +6,7 @@
 enum {
 	kMainMenu = 0,
 	kSingleGameMenu,
+	kSingleGameJoinMenu,
 	kSingleGameCreateMenu,
 	kMultiGameMenu,
 	kMultiGameJoinSetting,
@@ -23,6 +24,8 @@ wxBEGIN_EVENT_TABLE(PageController, wxSimplebook)
 	EVT_BUTTON(singleID_back, PageController::OnButton)
 	EVT_BUTTON(singleCreateID_confirm, PageController::OnButton)
 	EVT_BUTTON(singleCreateID_back, PageController::OnButton)
+	EVT_BUTTON(singleJoinID_confirm, PageController::OnButton)
+	EVT_BUTTON(singleJoinID_back, PageController::OnButton)
 	EVT_BUTTON(multiID_join_game, PageController::OnButton)
 	EVT_BUTTON(multiID_create_game, PageController::OnButton)
 	EVT_BUTTON(multiID_back, PageController::OnButton)
@@ -47,8 +50,11 @@ PageController::PageController(wxWindow* p_parent)
 	single_game_menu = new SingleGameMenu(this);
 	AddPage(single_game_menu, wxT("Single Game Menu"));
 
+	single_game_join_menu = new SingleGameJoinMenu(this);
+	AddPage(single_game_join_menu, wxT("Single Game Join"));
+
 	single_game_create_menu = new SingleGameCreateMenu(this);
-	AddPage(single_game_create_menu, wxT("Single Game Menu"));
+	AddPage(single_game_create_menu, wxT("Single Game Create"));
 
 	multi_game_menu = new MultiGameMenu(this);
 	AddPage(multi_game_menu, wxT("Multi Game Menu"));
@@ -90,14 +96,19 @@ void PageController::OnButton(wxCommandEvent& event) {
 			ChangeSelection(kMultiGameMenu);
 			break;
 		case singleID_join:
-			app_status.IP_address = "127.0.0.1";
-			JoinGame();
+			ChangeSelection(kSingleGameJoinMenu);
 			break;
 		case singleID_create:
 			ChangeSelection(kSingleGameCreateMenu);
 			break;
 		case singleID_back:
 			ChangeSelection(kMainMenu);
+			break;
+		case singleJoinID_confirm:
+			JoinGame();
+			break;
+		case singleJoinID_back:
+			ChangeSelection(kSingleGameMenu);
 			break;
 		case singleCreateID_confirm:
 			// 单人游戏

@@ -36,6 +36,7 @@ private:
     int humans;
     int robots;
     int ready;
+    //HANDLE gameLock
 
     struct index_info {
         Server* s;
@@ -53,6 +54,7 @@ private:
     SOCKET Member_Sock[MAX_PLAYERS + 1];
 
     int num_Players;
+    int num_left;
     int PlayerSortedSock[MAX_PLAYERS];
 
     WSAEVENT Member_Event[MAX_PLAYERS + 1];

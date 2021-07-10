@@ -30,6 +30,7 @@ class Port:public ConnectBase{
         static void SendSignal(msg_t sig, SOCKET to);
         static void SendName(const string& name, SOCKET to);
         static void SendGameType(GameType gt, SOCKET to);
+        static void SendInt(int integer, SOCKET to);
         //static char* read_buf(SOCKET s,void* dst,char* buf,char* cur_read,int buf_size,int max_size);
         static void read_buf(SOCKET s, char* dst, int size);
         static int MsgBufClear(queue<GameMessage>& buf);

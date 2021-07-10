@@ -60,7 +60,7 @@ template <int np> void CardGame<np>::dispeffect(ci<np> k, const string &s) const
 template <int np> void CardGame<np>::dispscore() const {
     Message m(m_dispscore);
     MsgSeries<np> ms(m);
-    ms.SetPars(0, score);
+    ms.SetInts(0, score);
     broadcast(ms);
 }
 template <int np> void CardGame<np>::think(ci<np> k) const {
@@ -421,7 +421,7 @@ ShuangkouGame::ShuangkouGame(array<bool, 4> ish, Server &s):
 //         break;
 //     case m_dispscore:
 //         cout << "score: ";
-//         for (int i = 0; i < n; i++) cout << m.GetPar(i) << " ";
+//         for (int i = 0; i < n; i++) cout << m.GetInt(i) << " ";
 //         break;
 //     case m_think:
 //         cout << "player " << m.GetPlayer() << " is thinking";

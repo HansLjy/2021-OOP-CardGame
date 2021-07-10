@@ -14,7 +14,8 @@ namespace ConnMsg {
         MSG_GRANT_CLOSE,
         MSG_SEND_NAME,
         MSG_RECV_NAME,
-        MSG_GAME_TYPE=7,
+        MSG_SEND_INT,
+        MSG_GAME_TYPE=20,
     };
 }
 
@@ -39,13 +40,17 @@ class GameMessage:public ConnectBase {
         void setSignal(msg_t ms);
         void setGameType(GameType t);
         void setGameType(char* p);
+        void setInt(int integer);
+        void setInt(char* p);
+
         GameMessage():state(ConnMsg::MSG_PAKAGE){}
         msg_t get_state() { return state; }
 
         void readPackage(char* src, int len) {
             setPackage(getPackage(src, len));
         }
-        GameType getGameType();
+        GameType getGameType()const;
+        int getInt()const;
         //int get_card_owner_index();
 
         //void clear();

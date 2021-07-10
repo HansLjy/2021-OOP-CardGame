@@ -20,6 +20,12 @@ enum {
 };
 
 enum {
+	singleJoinID_confirm = 2500,
+	singleJoinID_back,
+	singleJoinID_name
+};
+
+enum {
 	multiID_join_game = 3000,
 	multiID_create_game,
 	multiID_back

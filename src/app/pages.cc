@@ -158,6 +158,41 @@ void SingleGameCreateMenu::OnReturn(wxCommandEvent &event) {
 	event.Skip();
 }
 
+wxBEGIN_EVENT_TABLE(SingleGameJoinMenu, wxPanel)
+	EVT_BUTTON(singleJoinID_confirm, SingleGameJoinMenu::OnConfirm)
+	EVT_BUTTON(singleJoinID_back, SingleGameJoinMenu::OnReturn)
+wxEND_EVENT_TABLE()
+
+SingleGameJoinMenu::SingleGameJoinMenu(wxWindow *p_parent)
+	: p_parent(p_parent), wxPanel(p_parent) {
+	title = new MyLabel(this, wxID_ANY, wxT("加入本地游戏"));
+	user_name_label = new MyLabel(this, wxID_ANY, wxT("用户名："));
+	user_name_input = new wxTextCtrl(this, singleJoinID_name, wxT("玩家 1"));
+	confirm = new MyButton(this, singleJoinID_confirm, wxT("确认"));
+	go_back = new MyButton(this, singleJoinID_back, wxT("返回"));
+
+	CenterBlockSizer * sizer = new CenterBlockSizer(this);
+	sizer->AddWidget(title, true);
+	sizer->AddWidget(user_name_label, true);
+	sizer->AddWidget(user_name_input, false);
+	sizer->AddWidget(confirm, true);
+	sizer->AddWidget(go_back, false);
+	sizer->Create();
+	
+	SetSizer(sizer);
+}
+
+void SingleGameJoinMenu::OnConfirm(wxCommandEvent &event) {
+	get_controller(control);
+	control->app_status.IP_address = string("127.0.0.1");
+	control->app_status.user_name = user_name_input->GetLineText(0);
+	event.Skip();
+}
+
+void SingleGameJoinMenu::OnReturn(wxCommandEvent &event) {
+	event.Skip();
+}
+
 wxBEGIN_EVENT_TABLE(MultiGameMenu, wxPanel)
 	EVT_BUTTON(multiID_join_game, MultiGameMenu::OnJoin)
 	EVT_BUTTON(multiID_create_game, MultiGameMenu::OnCreate)
@@ -461,12 +496,15 @@ namespace GameStatus {
 		cerr << "========================================================" << endl;
 	}
 
-	void StartNewRound() {
-		show_stake = true;
+	void ClearAll() {
+		is_counting_down = false;
+		show_stake = false;
 		is_auction = false;
-		is_denied = false;
+		is_my_turn = false;
+		could_pass = false;
 		show_info = false;
 		show_box = false;
+		is_denied = false;
 		thinker = -1;
 	}
 }
@@ -576,7 +614,13 @@ CardSet getCardSet(int n) {
 void JoinGameThread (AppStatus &status, Client& client, PageController *controller) {
 	using namespace GameStatus;
 	GameConn::GameType game_type;
-	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
+	int my_pos;
+	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type, my_pos);
+	if (new_user_name.size() == 0) { // 连接超时，异常
+		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
+		controller->GetEventHandler()->QueueEvent(join_fail);
+		return;
+	}
 	switch (game_type) {
 		case kLandlord3:
 			num_players = 3;
@@ -587,23 +631,9 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 		default:
 			cerr << "What the hack is this shit?" << endl;
 	}
-	if (new_user_name.size() == 0) { // 连接超时，异常
-		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
-		controller->GetEventHandler()->QueueEvent(join_fail);
-		return;
-	}
 	// 设置用户名
-	switch(num_players) {
-		case 4:
-			for (int i = 0; i < 4; i++) {
-				user_name[i] = new_user_name[i];
-			}
-			break;
-		case 3:
-			user_name[0] = new_user_name[0];
-			user_name[1] = new_user_name[1];
-			user_name[2] = new_user_name[3];
-			break;
+	for (int i = 0; i < num_players; i++) {
+		user_name[i] = new_user_name[(i + my_pos) % num_players];
 	}
 	wxCommandEvent *join_success = new wxCommandEvent(JoinSuccessEvent, eventID_join_success);
 	controller->GetEventHandler()->QueueEvent(join_success);
@@ -632,8 +662,16 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 		wxCommandEvent *fail = new wxCommandEvent(CreateFailEvent, eventID_create_fail);
 		controller->GetEventHandler()->QueueEvent(fail);
 	}
+	
+	// CPFA
 	GameConn::GameType game_type;
-	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type);
+	int my_pos;
+	auto new_user_name = client.JoinRoom(status.IP_address, string(status.user_name), game_type, my_pos);
+	if (new_user_name.size() == 0) { // 连接超时，异常
+		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
+		controller->GetEventHandler()->QueueEvent(join_fail);
+		return;
+	}
 	switch (game_type) {
 		case kLandlord3:
 			num_players = 3;
@@ -644,19 +682,11 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 		default:
 			cerr << "What the hack is this shit?" << endl;
 	}
-	if (new_user_name.size() == 0) { // 连接超时，异常
-		wxCommandEvent *join_fail = new wxCommandEvent(JoinFailEvent, eventID_join_fail);
-		controller->GetEventHandler()->QueueEvent(join_fail);
-		return;
-	}
-	for (auto name : new_user_name) {
-		cerr << name << endl;
-	}
-	// 设置用户名
-	
+	// 设置用户名	
 	for (int i = 0; i < num_players; i++) {
-		user_name[i] = new_user_name[i];
+		user_name[i] = new_user_name[(i + my_pos) % num_players];
 	}
+
 	wxCommandEvent join_success(JoinSuccessEvent, eventID_join_success);
 	controller->GetEventHandler()->QueueEvent(join_success.Clone());
 	std::cerr << "Join Success" << std::endl;
@@ -683,7 +713,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 		bool end_loop = false;
 		auto package = client.CollectGameMsg();
 		mtx.lock();
-		StartNewRound();
+
 		dump();
 		std::cerr << "Looping" << std::endl;
 		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
@@ -694,21 +724,26 @@ void GameThread(Client &client, GameInterface *game_interface) {
 		auto message = Message(package.GetData());
 		switch (message.GetType()) {
 			case m_empty:
+				ClearAll();
 				std::cerr << "m_empty" << std::endl;
 				break;
 			case m_start:
+				ClearAll();
 				std::cerr << "m_start" << std::endl;
 				break;
 			case m_end:
+				ClearAll();
 				std::cerr << "m_end" << std::endl;
 				end_loop = true;
 				break;
 			case m_box:
+				ClearAll();
 				std::cerr << "m_dispbox" << std::endl;
 				show_info = true;
 				disp_info = message.GetExtension();
 				break;
 			case m_disptext:
+				ClearAll();
 				std::cerr << "m_disptext" << std::endl;
 				show_box = true;
 				disp_info = message.GetExtension();
@@ -718,14 +753,17 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				// TODO
 				break;
 			case m_dispscore:
+				ClearAll();
 				std::cerr << "m_dispscore" << std::endl;
 				GameOverSetting(message, game_interface);
 				break;
 			case m_think:
+				ClearAll();
 				std::cerr << "m_think" << std::endl;
 				thinker = message.GetPlayer();
 				break;
 			case m_deal:
+				ClearAll();
 				std::cerr << "m_deal" << std::endl;
 				for (int i = 0; i < num_players; i++) {
 					num_cards[i] = message.GetPar(i);
@@ -733,6 +771,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				my_cards = message.GetCards();
 				break;
 			case m_bid:
+				ClearAll();
 				std::cerr << "m_bid" << std::endl;
 				show_stake = true;
 				if (message.IsRequest()) {
@@ -746,11 +785,13 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				}
 				break;
 			case m_changestake:
+				ClearAll();
 				std::cerr << "m_changestake" << std::endl;
 				show_stake = true;
 				stake = message.GetPar();
 				break;
 			case m_setlandlord:
+				ClearAll();
 				std::cerr << "m_setlandlord" << std::endl;
 				landlord = message.GetPar();
 				num_cards[message.GetPlayer()] = message.GetPar();
@@ -761,6 +802,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				}
 				break;
 			case m_playout:
+				ClearAll();
 				std::cerr << "m_playout" << std::endl;
 				if (message.IsRequest()) { // 需要出牌
 					is_counting_down = true;
@@ -779,11 +821,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 			default:
 				std::cerr << "m_other" << std::endl;
 				break;
-		}
-		if ((message.GetType() != m_deny || !is_denied) && message.GetType() != m_playout) {
-			is_counting_down = false;
-			is_my_turn = false;
-			could_pass = false;
 		}
 		mtx.unlock();
 		if (end_loop) {
@@ -944,7 +981,6 @@ void GameInterface::OnDeal(wxCommandEvent &event) {
 
 	Package new_package(Header(1, i_server), new_message.String());
 	client->SendGameMsg(new_package);
-	Render();
 
 	std::cerr << "Dealt!" << std::endl;
 }

@@ -72,6 +72,24 @@ public:
 	wxDECLARE_EVENT_TABLE();
 };
 
+class SingleGameJoinMenu : public wxPanel {
+public:
+	SingleGameJoinMenu () = delete;
+	SingleGameJoinMenu (wxWindow *p_parent);
+
+	MyLabel		*title;
+	wxWindow	*p_parent;
+	MyLabel		*user_name_label;
+	wxTextCtrl	*user_name_input;
+	MyButton	*confirm;
+	MyButton	*go_back;
+
+	void OnConfirm(wxCommandEvent& event);
+	void OnReturn(wxCommandEvent& event);
+
+	wxDECLARE_EVENT_TABLE();
+};
+
 class MultiGameMenu : public wxPanel {
 public:
 	MultiGameMenu () = delete;

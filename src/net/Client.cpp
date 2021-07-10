@@ -8,7 +8,8 @@ Client::Client():serv_Sock(0),Port(){
 const vector<string>& Client::JoinRoom(
     const char* IP,
     const string& name,
-    GameType& gameType
+    GameType& gameType,
+    int& pos
 ){
     if (state != GamePort::GAME_OVER) return names;
 	WSADATA wsaData;
@@ -43,6 +44,9 @@ const vector<string>& Client::JoinRoom(
                 break;
             case ConnMsg::MSG_GAME_TYPE:
                 gameType = gm.getGameType();
+                break;
+            case ConnMsg::MSG_SEND_INT:
+                pos = gm.getInt();
                 break;
             default: break;
             }

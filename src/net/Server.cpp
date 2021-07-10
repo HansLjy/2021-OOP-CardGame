@@ -12,6 +12,8 @@ void Server::SendGameMsg(const Package& p) {
         SendInfo(gm, getSock(i));
     }
     catch (logic_error& e) {
+        // error print
+        cout << "failed to send massage" << endl;
         cout << e.what();
         error = 1;
     }
@@ -54,6 +56,8 @@ Package Server::CollectGameMsg(int sender) {
         }
     }
     catch (logic_error& e) {
+        // error print
+        cout << "failed to read massage" << endl;
         pkg = Package(Header(0, 0),"");
     }
     return pkg;
@@ -82,11 +86,15 @@ unsigned WINAPI Server::thread_server_main(void* LPserver){
     int posInfo,startIdx;
     int sigEventIdx;
     int i;
+
+
     try {
         if (s == nullptr) {
             throw ceNullServer();
         }
         else {
+            //WaitForSingleObject(s->gameLock, INFINITE);
+
             posInfo =
                 WSAWaitForMultipleEvents(
                     s->num_Members,
@@ -143,6 +151,7 @@ unsigned WINAPI Server::thread_server_main(void* LPserver){
                     }
                 }
             }
+            //ReleaseMutex(s->gameLock);
         }
     }
     catch (logic_error& e) {
@@ -174,6 +183,7 @@ int Server::handle_close(int index){
     PlayerSortedSock[i] = 0;
 
     num_Members--;
+    num_left--;
 
     for(i=index;i<num_Members;i++){
         buffer[i]=buffer[i+1];
@@ -187,7 +197,14 @@ int Server::handle_close(int index){
         }
     }
 
-    if (num_Members == 0) {
+    if (num_left == 0 && num_Members > 1) {
+        num_Players = 0;
+        for (i = 1; i < num_Members; i++) {
+            PlayerSortedSock[num_Players++] = i;
+        }
+    }
+    else
+    if (num_Members <=1) {
         CloseRoom();
     }
     if (state == GamePort::GAME_ON) {
@@ -250,8 +267,10 @@ int Server::handle_read(int index){
             if (state != GamePort::GAME_OPEN) {
                 throw ceStateEx();
             }
-            PlayerSortedSock[num_Players++] = index;
-            if (num_Players >= humans) {
+            if(num_left==0)
+                PlayerSortedSock[num_Players++] = index;
+            if (num_Players >= humans && num_left==0) {
+                num_left = num_Players;
                 for (int i = 0; i < robots; i++) {
                     string rob_name("robots_");
                     rob_name.append(1, '0' + i);
@@ -263,25 +282,29 @@ int Server::handle_read(int index){
                             SendName(names[j], getSock(i));
                         }
                         SendGameType(game_t, getSock(i));
+                        SendInt(i, getSock(i));
                         SendSignal(
                             ConnMsg::MSG_CONN_ACCEPT,
                             getSock(i)
                         );
                     }
                 }
+                names.clear();
                 ready = 1;
             }
             break;
         case ConnMsg::MSG_WANT_CLOSE:
             while(state == GamePort::GAME_ON) {
             }
+            ready = 0;
+
             SendSignal(ConnMsg::MSG_GRANT_CLOSE, Member_Sock[index]);
             //num_Players--;
             break;
         }
     }
     catch (ceReadInt& e) {
-
+        cout << "the client closed socket in a way that is not normal" << endl;
     }
 }
 
@@ -291,9 +314,14 @@ int Server:: OpenRoom(GameType gt, int humans, int robots){
 	WSADATA wsaData;
     WSAEVENT newEvent;
 
+    // room cannot be openned again until
+    // the lock is released (released in closeroom)
+    //WaitForSingleObject(gameLock, INFINITE);
+
     if(state!= GamePort::GAME_OVER||error) return 1;//false
     state= GamePort::GAME_OPEN;
     ready = 0;
+    num_left = 0;
 
     try {
         game_t = gt;
@@ -341,19 +369,23 @@ int Server:: OpenRoom(GameType gt, int humans, int robots){
         cout << e.what();
         return 1;
     }
+    //ReleaseMutex(gameLock);
+
     //while (!ready);
     return 0;
 }
 
 int Server:: CloseRoom(){
     if(state==GamePort::GAME_OVER) return 0;
-    state=GamePort::GAME_OVER;
+    state = GamePort::GAME_OVER;
+
     ready = 0;
     // tell client to quit
     closesocket(Member_Sock[0]);
     WSACloseEvent(Member_Event[0]);
     num_Members=0;
     WSACleanup();
+
     return 0;
 }
 
@@ -363,9 +395,11 @@ Server::Server():
     humans(0),
     robots(0),
     num_Players(0),
-    ready(0)
+    ready(0),
+    num_left(0)
 {
     int i;
+    //gameLock = CreateMutex(NULL, FALSE, NULL);
     for(i=0;i<MAX_PLAYERS;i++){
         Mutex[i]=CreateMutex(NULL,FALSE,NULL);
         PlayerSortedSock[i] = 0;
@@ -378,6 +412,7 @@ Server::~Server(){
     for(i=0;i<MAX_PLAYERS;i++){
         CloseHandle(Mutex[i]);
     }
+    //CloseHandle(gameLock);
 }
 
 //inline int Server:: NumPlayersInRoom()const{

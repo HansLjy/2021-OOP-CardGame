@@ -12,7 +12,8 @@ int GameLauncher::OpenRoom(
 
     if (game_ptr) clearGame();
     try {
-        if (s.OpenRoom(gt, humans, robots)) return 1;
+        //if (s.OpenRoom(gt, humans, robots)) return 1;
+        s.OpenRoom(gt, humans, robots);
 
         hThread = (HANDLE)_beginthreadex(
             NULL,
@@ -23,15 +24,30 @@ int GameLauncher::OpenRoom(
             &threadID
         );
     }
-    catch (...) { return 1; }
+    catch (...) { 
+        // error print
+        cout << "room open failed" << endl;
+        return 1;
+    }
     return 0;
 }
 
 unsigned WINAPI GameLauncher::thread_main(void* LPgamelauncher) {
     GameLauncher* self = reinterpret_cast<GameLauncher*>(LPgamelauncher);
-    while (!self->s.isReady()) {}
-    self->setGame();
-    return self->StartGame();
+    try {
+        while (!self->s.isReady()) {}
+        self->setGame();
+        return self->StartGame();
+    }
+    catch (exception& e) {
+        // error print
+        cout << "game error" << endl;
+        cout << e.what() << endl;
+    }
+    catch (...) {
+        // error print
+        cout << "game error" << endl;
+    }
 }
 
 
@@ -40,25 +56,24 @@ void GameLauncher::setGame() {
     array<bool, 4> human1_robot0_4;
     
     int i = 0;
+    for (i = 0; i < 3; i++) {
+        human1_robot0_3[i] = false;
+        human1_robot0_4[i] = false;
+    }
+    human1_robot0_4[i] = false;
     for (i = 0; i < s.getHumans(); i++) {
         human1_robot0_3[i] = true;
         human1_robot0_4[i] = true;
     }
-    for (; i < s.getHumans()+s.getRobots() - 1; i++) {
-        human1_robot0_3[i] = false;
-        human1_robot0_4[i] = false;
-    }
+
     switch (s.getGameType()) {
     case GameType::Landlords_3:
-        human1_robot0_3[i] = false;
         game_ptr = new DouDizhuGame(human1_robot0_3,s);
         break;
     case GameType::Landlords_4:
-        human1_robot0_4[i] = false;
         game_ptr = new SirenDouDizhuGame(human1_robot0_4,s);
         break;
     case GameType::Doubleclasp:
-        human1_robot0_4[i] = false;
         game_ptr = new ShuangkouGame(human1_robot0_4,s);
         break;
     default:

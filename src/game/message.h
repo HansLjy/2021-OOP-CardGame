@@ -43,15 +43,17 @@ public:
     int GetPlayer() const; // returns the 7th parameter, which is usually a player index
     int GetTime() const; // returns the 6th parameter, which is usually a time
     CardSet GetCards() const; // returns the card set parameter
-    string GetExtension() const; // returns the extension, usually storing variable-length parameters e.g. text to display
+    string GetExtension() const; // returns the extension, usually storing other types of information
     const string &GetExtensionR() const; // returns the extension by reference
-    void SetType(MsgType t); // sets the type to t
+    int GetInt(int k = 0) const; // interpret the extension as a little-endian int array and return the kth element
+    void SetType(MsgType t); // sets the message type to t
     void SetIsRequest(bool b);
-    void SetPar(int k, int v); // sets the kth parameter to val
+    void SetPar(int k, int v); // sets the kth parameter to v, and v must be in [-128, 128)
     void SetPlayer(int p);
     void SetTime(int t);
     void SetCards(const CardSet &s);
     void SetExtension(const string &s);
+    void SetInt(int k, int v);
     string String() const; // encodes the message to a string
 };
 
@@ -63,6 +65,8 @@ public:
     void SetPars(int k, array<int, np> a); // sets the first np parameters from k with left rotation
     void SetPlayer(ci<np> v);
     void SetCards(const array<CardSet, np> &a);
+    void SetInt(int k, array<int, np> a);
+    void SetInts(int k, array<int, np> a);
 };
 template class MsgSeries<3>;
 template class MsgSeries<4>;

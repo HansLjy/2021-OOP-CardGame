@@ -30,11 +30,27 @@ void GameMessage::setGameType(char*p) {
 	extra_info.assign(p, sizeof(GameType));
 }
 
-GameType GameMessage::getGameType() {
+GameType GameMessage::getGameType()const {
 	char buf[BUF_SIZE];
 	GameType* g = reinterpret_cast<GameType*>(buf);
 	memcpy(buf, extra_info.c_str(), sizeof(GameType));
 	return *g;
+}
+
+void GameMessage::setInt(int integer) {
+	char* p = reinterpret_cast<char*>(&integer);
+	setInt(p);
+}
+
+void GameMessage::setInt(char* p) {
+	state = ConnMsg::MSG_SEND_INT;
+	extra_info.assign(p, sizeof(int));
+}
+
+int GameMessage::getInt() const{
+	int integer;
+	memcpy(&integer, extra_info.c_str(), sizeof(int));
+	return integer;
 }
 
 void GameMessage::setPackage(const Package& pkg) {
