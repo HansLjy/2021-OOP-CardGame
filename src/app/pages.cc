@@ -371,6 +371,7 @@ void GamePending::StartPending(Status set_status) {
 }
 
 void GamePending::StopPending() {
+	count = 0;
 	timer->Stop();
 }
 
@@ -699,7 +700,7 @@ void GameOverSetting(Message message, GameInterface *game_interface) {
 	int score[4];
 
 	for (int i = 0; i < num_players; i++) {
-		score[i] = message.GetPar(i);
+		score[i] = message.GetInt(i);
 	}
 
 	control->game_over->SetScore(user_name, score, num_players);
@@ -1012,8 +1013,11 @@ void GameInterface::OnBid(wxCommandEvent &event) {
 
 void GameInterface::OnPass(wxCommandEvent &event) {
 	std::cerr << "Pass!" << std::endl;
-	CardSet card_set(0);
-
+	get_controller(control);
+	Message new_message;
+	new_message.SetCards(CardSet(0));
+	Package new_package(Header(1, 0), new_message.String());
+	control->client.SendGameMsg(new_package);
 }
 
 void GameInterface::OnTimer(wxTimerEvent &event) {
@@ -1021,7 +1025,7 @@ void GameInterface::OnTimer(wxTimerEvent &event) {
 	if (!is_counting_down) {
 		return;
 	}
-	if (count_down < 0) {	// 倒计时时间到了
+	if (count_down <= 0) {	// 倒计时时间到了
 		// 停止倒计时
 		is_counting_down = false;
 
