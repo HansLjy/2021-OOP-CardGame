@@ -519,6 +519,12 @@ namespace GameStatus {
 			cerr << user_name[i] << " " << endl;
 		cerr << "========================================================" << endl;
 	}
+	
+	void ClearAuction() {
+		for (int i = 0; i < 4; i++) {
+			auction[i] = -1;
+		}
+	}
 
 	void ClearAll() {
 		is_counting_down = false;
@@ -529,14 +535,12 @@ namespace GameStatus {
 		show_info = false;
 		show_box = false;
 		is_denied = false;
-		for (int i = 0; i < 4; i++) {
-			auction[i] = -1;
-		}
 		thinker = -1;
 	}
 
 	void Restart() {
 		ClearAll();
+		ClearAuction();
 		landlord = -1;
 	}
 }
@@ -764,7 +768,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 		auto package = client.CollectGameMsg();
 		mtx.lock();
 
-		dump();
 		std::cerr << "Looping" << std::endl;
 		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
 			wxCommandEvent *log_out = new wxCommandEvent(LogOutEvent, eventID_log_out);
@@ -851,6 +854,7 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_playout:
 				ClearAll();
+				ClearAuction();
 				std::cerr << "m_playout" << std::endl;
 				if (message.IsRequest()) { // 需要出牌
 					is_counting_down = true;
