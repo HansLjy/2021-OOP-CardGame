@@ -666,8 +666,6 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 		case GameType::Doubleclasp:
 			num_players = 4;
 			break;
-		default:
-			cerr << "What the hack is this shit?" << endl;
 	}
 	// 设置用户名
 	for (int i = 0; i < num_players; i++) {
@@ -678,7 +676,6 @@ void JoinGameThread (AppStatus &status, Client& client, PageController *controll
 }
 
 void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client& client, PageController* controller) {
-	std::cerr << "Create Game And Join" << std::endl;
 	using namespace GameStatus;
 	bool create_success = false;
 	switch (status.game_type) {
@@ -693,11 +690,9 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 			break;
 	}
 	if (create_success) {
-		std::cerr << "Create Success" << std::endl;
 		wxCommandEvent *success = new wxCommandEvent(CreateSuccessEvent, eventID_create_success);
 		controller->GetEventHandler()->QueueEvent(success);
 	} else {
-		std::cerr << "Create Fail" << std::endl;
 		wxCommandEvent *fail = new wxCommandEvent(CreateFailEvent, eventID_create_fail);
 		controller->GetEventHandler()->QueueEvent(fail);
 	}
@@ -719,8 +714,6 @@ void CreateGameAndJoinThread (AppStatus& status, GameLauncher& launcher, Client&
 		case GameType::Doubleclasp:
 			num_players = 4;
 			break;
-		default:
-			cerr << "What the hack is this shit?" << endl;
 	}
 	// 设置用户名
 	for (int i = 0; i < num_players; i++) {
@@ -761,14 +754,12 @@ inline int getPlayerId(int id, int num_players) {
 
 void GameThread(Client &client, GameInterface *game_interface) {
 	using namespace GameStatus;
-	std::cerr << "Start Game Thread";
 
 	while (true) {
 		bool end_loop = false;
 		auto package = client.CollectGameMsg();
 		mtx.lock();
 
-		std::cerr << "Looping" << std::endl;
 		if (package.GetHeader().IsSuccess() == false) {	// 断开连接
 			wxCommandEvent *log_out = new wxCommandEvent(LogOutEvent, eventID_log_out);
 			game_interface->GetEventHandler()->QueueEvent(log_out);
@@ -887,9 +878,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 }
 
 void GameInterface::StartGame(Client &client) {
-
-	cerr << "Start Game!" << std::endl;
-
 	center_info->SetLabelText(wxT("游戏进行中"));
 	center_info->Show();
 	timer->Start(1000);

@@ -50,7 +50,7 @@ protected:
     Analysis last; // analysis of the last non-pass hand
     void deal(array<int, np> noc); // the ith player gets noc[i] cards
     void changestake(int s);
-    virtual CardSet playout_robot(ci<np> k) const;
+    virtual CardSet playout_robot(ci<np> k) const = 0;
     void playout(ci<np> k);
     virtual void play() = 0;
 public:
@@ -62,6 +62,8 @@ template class WinnerBasedGame<4>;
 class DouDizhuGame: public WinnerBasedGame<3> {
     int bid_robot(ci<3> k) const;
     void play();
+protected:
+	CardSet playout_robot(ci<3> k) const;
 public:
     explicit DouDizhuGame(array<bool, 3> ish, Server &s);
 };
@@ -69,12 +71,16 @@ public:
 class SirenDouDizhuGame: public WinnerBasedGame<4> {
     int bid_robot(ci<4> k) const;
     void play();
+protected:
+	CardSet playout_robot(ci<4> k) const;
 public:
     explicit SirenDouDizhuGame(array<bool, 4> ish, Server &s);
 };
 
 class ShuangkouGame: public WinnerBasedGame<4> {
     void play();
+protected:
+	CardSet playout_robot(ci<4> k) const;
 public:
     explicit ShuangkouGame(array<bool, 4> ish, Server &s);
 };
