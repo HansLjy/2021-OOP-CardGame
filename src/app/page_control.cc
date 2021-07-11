@@ -164,7 +164,6 @@ Client* PageController::GetClient() {
 }
 
 void PageController::OnJoinSuccess(wxCommandEvent& event) {
-	std::cerr << "Join Success" << std::endl;
 	game_pending->StopPending();
 	game_interface->StartGame(client);
 	ChangeSelection(kGameInterface);
@@ -177,12 +176,10 @@ void PageController::OnJoinFail(wxCommandEvent& event) {
 }
 
 void PageController::OnCreateSuccess(wxCommandEvent& event) {
-	std::cerr << "Create Success" << std::endl;
 	game_pending->StartPending(GamePending::Status::kJoining);
 }
 
 void PageController::OnCreateFail(wxCommandEvent& event) {
-	std::cerr << "Create Fail" << std::endl;
 	game_pending->StopPending();
 	wxMessageBox(wxT("创建房间失败！"));
 	ChangeSelection(kMainMenu);

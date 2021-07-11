@@ -106,7 +106,8 @@ DeckPanel::DeckPanel (wxWindow *p_parent, CardFace face, CardOrientation orient)
 			}
 			initialized = true;
 		} catch (...) {
-			std::cerr << "Image File Lost!" << std::endl;
+			wxMessageBox(wxT("图片未找到！"));
+			// Image file lost
 		}
 	}
 	info = new MyLabel(this, wxID_ANY, wxT("正在思考..."));
@@ -229,7 +230,6 @@ void DeckPanel::OnRender(wxPaintEvent &event) {
 void DeckPanel::OnClick(wxMouseEvent &event) {
 	int mouse_x = event.GetPosition().x;
 	int mouse_y = event.GetPosition().y;
-	std::cerr << mouse_x << " " << mouse_y << std::endl;
 
 	if (orientation == kDown) {
 		int number_of_cards = card_set.GetNumOfCards();
@@ -243,13 +243,11 @@ void DeckPanel::OnClick(wxMouseEvent &event) {
 				if (is_draw[i]) {
 					if (y - k_delta_y < mouse_y && mouse_y < y - k_delta_y + k_card_height) {
 						is_draw[i] = false;
-						std::cerr << "Chosen " << i << std::endl;
 						break;
 					}
 				} else {
 					if (y < mouse_y && mouse_y < y + k_card_height) {
 						is_draw[i] = true;
-						std::cerr << "Chosen " << i << std::endl;
 						break;
 					}
 				}

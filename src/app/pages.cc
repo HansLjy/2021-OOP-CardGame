@@ -26,8 +26,8 @@ MainMenu::MainMenu(wxWindow* p_parent)
 	right_panel 	= new wxPanel(this);
 	title 			= new MyLabel(right_panel, wxID_ANY, wxT("主菜单"));
 	image 			= new wxImagePanel(this, wxString("./static/main.jpg"), wxBITMAP_TYPE_JPEG);
-	b_play_single 	= new MyButton(right_panel, mainID_play_single, wxT("单人游戏"));
-	b_play_multi	= new MyButton(right_panel, mainID_play_multi, wxT("多人游戏"));
+	b_play_single 	= new MyButton(right_panel, mainID_play_single, wxT("本地游戏"));
+	b_play_multi	= new MyButton(right_panel, mainID_play_multi, wxT("联机游戏"));
 	b_quit 			= new MyButton(right_panel, wxID_EXIT, wxT("退出游戏"));
 
 	title->SetFont(h1_font);
@@ -57,14 +57,12 @@ void MainMenu::OnPlaySingle(wxCommandEvent& event) {
 	auto control = static_cast<PageController*>(this->p_parent);
 	control->app_status.single_multi = kSingle;
 	control->app_status.IP_address = "127.0.0.1";
-	std::cerr << "Select Single" << std::endl;
 	event.Skip();
 }
 
 void MainMenu::OnPlayMulti(wxCommandEvent& event) {
 	auto control = static_cast<PageController*>(this->p_parent);
 	control->app_status.single_multi = kMulti;
-	std::cerr << "Select Multi" << std::endl;
 	event.Skip();
 }
 
@@ -111,7 +109,7 @@ wxEND_EVENT_TABLE()
 SingleGameCreateMenu::SingleGameCreateMenu (wxWindow* p_parent)
 	: wxPanel (p_parent), p_parent(p_parent) {
 
-	title = new MyLabel(this, wxID_ANY, wxT("单人游戏"));
+	title = new MyLabel(this, wxID_ANY, wxT("本地游戏"));
 	game_select_label = new MyLabel(this, wxID_ANY, wxT("选择游戏："));
 	game_select = new wxChoice(this, singleCreateID_game_select);
 	user_name_label = new MyLabel(this, wxID_ANY, wxT("用户名："));
@@ -144,11 +142,8 @@ SingleGameCreateMenu::SingleGameCreateMenu (wxWindow* p_parent)
 
 void SingleGameCreateMenu::OnConfirm(wxCommandEvent &event) {
 	get_controller(control)
-	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
 	control->app_status.user_name = user_name_input->GetLineText(0);
-	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
 	control->app_status.player_number = user_number_input->GetValue();
-	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
 	switch (game_select->GetSelection()) {
 		case 0:
 			control->app_status.game_type = kLandlord3;
@@ -160,12 +155,10 @@ void SingleGameCreateMenu::OnConfirm(wxCommandEvent &event) {
 			control->app_status.game_type = k2v2;
 			break;
 	}
-	std::cerr << "Click confirm" << std::endl;
 	event.Skip();
 }
 
 void SingleGameCreateMenu::OnReturn(wxCommandEvent &event) {
-	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
 
@@ -232,19 +225,16 @@ MultiGameMenu::MultiGameMenu (wxWindow *p_parent)
 void MultiGameMenu::OnJoin(wxCommandEvent &event) {
 	get_controller(control);
 	control->app_status.join_create = kJoin;
-	std::cerr << "Click Join" << std::endl;
 	event.Skip();
 }
 
 void MultiGameMenu::OnCreate(wxCommandEvent &event) {
 	get_controller(control);
 	control->app_status.join_create = kCreate;
-	std::cerr << "Click Create" << std::endl;
 	event.Skip();
 }
 
 void MultiGameMenu::OnReturn(wxCommandEvent &event) {
-	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
 
@@ -280,16 +270,12 @@ MultiGameJoinSetting::MultiGameJoinSetting (wxWindow *p_parent)
 
 void MultiGameJoinSetting::OnConfirm(wxCommandEvent &event) {
 	get_controller(control);
-	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
 	control->app_status.user_name = user_name_input->GetLineText(0);
-	std::cerr << "IP address: " << IP_input->GetLineText(0) << std::endl;
 	control->app_status.IP_address = IP_input->GetLineText(0);
-	std::cerr << "Click Confirm" << std::endl;
 	event.Skip();
 }
 
 void MultiGameJoinSetting::OnReturn(wxCommandEvent &event) {
-	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
 
@@ -333,7 +319,6 @@ MultiGameCreateSetting::MultiGameCreateSetting(wxWindow *p_parent)
 void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
 	get_controller(control);
 	control->app_status.IP_address = "127.0.0.1";
-	std::cerr << "Game Select: " << game_select->GetSelection() << std::endl;
 	switch (game_select->GetSelection()) {
 		case 0:
 			control->app_status.game_type = kLandlord3;
@@ -345,16 +330,12 @@ void MultiGameCreateSetting::OnConfirm(wxCommandEvent &event) {
 			control->app_status.game_type = k2v2;
 			break;
 	}
-	std::cerr << "User name: " << user_name_input->GetLineText(0) << std::endl;
 	control->app_status.user_name = user_name_input->GetLineText(0);
-	std::cerr << "User number: " << user_number_input->GetValue() << std::endl;
 	control->app_status.player_number = user_number_input->GetValue();
-	std::cerr << "Click Confirm" << std::endl;
 	event.Skip();
 }
 
 void MultiGameCreateSetting::OnReturn(wxCommandEvent &event) {
-	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
 
@@ -435,7 +416,6 @@ void GameOver::Render() {
 }
 
 void GameOver::OnReturn(wxCommandEvent &event) {
-	std::cerr << "Click Return" << std::endl;
 	event.Skip();
 }
 
@@ -769,45 +749,36 @@ void GameThread(Client &client, GameInterface *game_interface) {
 		switch (message.GetType()) {
 			case m_empty:
 				ClearAll();
-				std::cerr << "m_empty" << std::endl;
 				break;
 			case m_start:
 				Restart();
-				std::cerr << "m_start" << std::endl;
 				break;
 			case m_end:
 				ClearAll();
-				std::cerr << "m_end" << std::endl;
 				end_loop = true;
 				break;
 			case m_box:
 				ClearAll();
-				std::cerr << "m_dispbox" << std::endl;
 				show_info = true;
 				disp_info = message.GetExtension();
 				break;
 			case m_disptext:
 				ClearAll();
-				std::cerr << "m_disptext" << std::endl;
 				show_box = true;
 				disp_info = message.GetExtension();
 				break;
 			case m_dispeffect:
-				std::cerr << "m_dispeffect" << std::endl;
 				break;
 			case m_dispscore:
 				ClearAll();
-				std::cerr << "m_dispscore" << std::endl;
 				GameOverSetting(message, game_interface);
 				break;
 			case m_think:
 				ClearAll();
-				std::cerr << "m_think" << std::endl;
 				thinker = message.GetPlayer();
 				break;
 			case m_deal:
 				ClearAll();
-				std::cerr << "m_deal" << std::endl;
 				for (int i = 0; i < num_players; i++) {
 					num_cards[i] = message.GetPar(i);
 				}
@@ -815,7 +786,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_bid:
 				ClearAll();
-				std::cerr << "m_bid" << std::endl;
 				show_stake = true;
 				if (message.IsRequest()) {
 					is_auction = true;
@@ -829,13 +799,11 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				break;
 			case m_changestake:
 				ClearAll();
-				std::cerr << "m_changestake" << std::endl;
 				show_stake = true;
 				stake = message.GetPar();
 				break;
 			case m_setlandlord:
 				ClearAll();
-				std::cerr << "m_setlandlord" << std::endl;
 				landlord = message.GetPlayer();
 				num_cards[message.GetPlayer()] = message.GetPar();
 				last_round_card[message.GetPlayer()] = message.GetCards();
@@ -846,7 +814,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 			case m_playout:
 				ClearAll();
 				ClearAuction();
-				std::cerr << "m_playout" << std::endl;
 				if (message.IsRequest()) { // 需要出牌
 					is_counting_down = true;
 					is_my_turn = true;
@@ -858,11 +825,9 @@ void GameThread(Client &client, GameInterface *game_interface) {
 				}
 				break;
 			case m_deny:
-				std::cerr << "m_deny" << std::endl;
 				is_denied = true;
 				break;
 			default:
-				std::cerr << "m_other" << std::endl;
 				break;
 		}
 		mtx.unlock();
@@ -874,7 +839,6 @@ void GameThread(Client &client, GameInterface *game_interface) {
 	}
 	wxCommandEvent *over = new wxCommandEvent(GameOverEvent, eventID_game_over);
 	game_interface->GetEventHandler()->QueueEvent(over);
-	std::cerr << "End Game Thread";
 }
 
 void GameInterface::StartGame(Client &client) {
@@ -891,8 +855,6 @@ void GameInterface::Render() {
 	using namespace GameStatus;
 	mtx.lock();
 
-	cerr << thinker << endl;
-
 	if (is_denied) {
 		wxMessageBox(wxT("出牌不合法！"));
 		my_cards.Insert(last_dealt);
@@ -903,7 +865,6 @@ void GameInterface::Render() {
 	}
 	
 	if (thinker != -1) {
-		cerr << getPlayerId(thinker, num_players) << endl;
 		last_round[getPlayerId(thinker, num_players)]->SetThinking(true);
 	}
 
@@ -932,7 +893,9 @@ void GameInterface::Render() {
 		user_info[3]->Show();
 	} else if (num_players == 4) {
 		deck[2]->SetDeck(getCardSet(num_cards[2]));
+		deck[2]->Show();
 		last_round[2]->SetDeck(last_round_card[2]);
+		last_round[2]->Show();
 		user_info[2]->SetLabelText(user_name[2]);
 		user_info[2]->Show();
 
@@ -943,7 +906,6 @@ void GameInterface::Render() {
 	}
 
 	if(landlord != -1) {
-		cerr << "LandLord! " << landlord << " " << getPlayerId(landlord, num_players) << endl;
 		user_info[getPlayerId(landlord, num_players)]->SetLabelText(user_name[landlord] + wxT("（地主）"));
 	}
 
@@ -1033,7 +995,6 @@ void GameInterface::OnDeal(wxCommandEvent &event) {
 	Package new_package(Header(1, i_server), new_message.String());
 	client->SendGameMsg(new_package);
 
-	std::cerr << "Dealt!" << std::endl;
 }
 
 void GameInterface::OnBid(wxCommandEvent &event) {
@@ -1062,7 +1023,6 @@ void GameInterface::OnBid(wxCommandEvent &event) {
 }
 
 void GameInterface::OnPass(wxCommandEvent &event) {
-	std::cerr << "Pass!" << std::endl;
 	get_controller(control);
 	Message new_message;
 	new_message.SetCards(CardSet(0));
@@ -1096,6 +1056,5 @@ void GameInterface::OnTimer(wxTimerEvent &event) {
 }
 
 void GameInterface::OnGameOver(wxCommandEvent &event) {
-	std::cerr << "Game Over!";
 	event.Skip();
 }

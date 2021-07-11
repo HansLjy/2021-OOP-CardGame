@@ -28,6 +28,5 @@ void wxImagePanel::render(wxDC&  dc) {
 	int height, width;
 	GetSize(&width, &height);
 	int img_height = image.GetScaledHeight(), img_width = image.GetScaledWidth();
-	std::cerr << height << " " << width << " " << img_height << " " << img_width << std::endl;
     dc.DrawBitmap(image, (width - img_width) / 2, (height - img_height) / 2, false);
 }
